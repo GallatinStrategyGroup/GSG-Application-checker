@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ReviewerPicker } from "@/components/reviewer-picker";
 import type { Checker } from "@/lib/checkers";
 
 // ---- Shapes of the editable rows -------------------------------------------
@@ -68,6 +69,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   const [essays, setEssays] = useState<EssayRow[]>([emptyEssay()]);
   const [supplementalInfo, setSupplementalInfo] = useState("");
 
+  // Which reviewer the student picked.
+  const [selectedReviewerId, setSelectedReviewerId] = useState<string | null>(null);
+
   // Load an in-progress draft saved earlier in this browser.
   useEffect(() => {
     let cancelled = false;
@@ -86,7 +90,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       const supabase = createClient();
       const { data: submission } = await supabase
         .from("submissions")
-        .select("id, intended_major, gpa, supplemental_info, status")
+        .select("id, intended_major, gpa, supplemental_info, status, assigned_reviewer_id")
         .eq("id", id)
         .maybeSingle();
 
@@ -103,6 +107,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       setIntendedMajor(submission.intended_major ?? "");
       setGpa(submission.gpa ?? "");
       setSupplementalInfo(submission.supplemental_info ?? "");
+      setSelectedReviewerId(submission.assigned_reviewer_id ?? null);
 
       const [{ data: sc }, { data: ac }, { data: es }] = await Promise.all([
         supabase.from("target_schools").select("name, tier").eq("submission_id", id),
@@ -147,6 +152,14 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       }
     }
 
+    if (status === "submitted" && !selectedReviewerId) {
+      setMessage({
+        kind: "error",
+        text: "Please choose a reviewer before submitting.",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const supabase = createClient();
@@ -170,6 +183,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         intended_major: intendedMajor.trim() || null,
         gpa: gpa.trim() || null,
         supplemental_info: checker.hasSupplemental ? supplementalInfo.trim() || null : null,
+        assigned_reviewer_id: selectedReviewerId,
         updated_at: new Date().toISOString(),
         ...(status === "submitted" ? { submitted_at: new Date().toISOString() } : {}),
       };
@@ -490,6 +504,14 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         </Section>
       )}
 
+      {/* Choose your reviewer */}
+      <Section
+        title="Choose your reviewer"
+        subtitle="Pick who reviews your application. Turn-around times reflect how busy each reviewer is right now."
+      >
+        <ReviewerPicker selectedId={selectedReviewerId} onSelect={setSelectedReviewerId} />
+      </Section>
+
       {message && (
         <p
           className={`rounded-lg px-4 py-3 text-sm ${
@@ -520,8 +542,8 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         </button>
         <span className="text-xs text-zinc-500">
           {checker.requiresIntakeToSubmit
-            ? "Major and at least one school are needed to submit."
-            : "Nothing is required — save whatever you have."}
+            ? "Major, one school, and a reviewer are needed to submit."
+            : "Nothing is required to save a draft. Choose a reviewer to submit."}
         </span>
       </div>
     </form>

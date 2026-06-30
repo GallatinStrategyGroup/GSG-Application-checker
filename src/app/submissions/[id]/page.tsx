@@ -30,12 +30,25 @@ export default async function SubmissionDetailPage({
   // RLS guarantees students can only read their own submissions.
   const { data: submission } = await supabase
     .from("submissions")
-    .select("id, type, status, intended_major, gpa, supplemental_info, updated_at, submitted_at")
+    .select(
+      "id, type, status, intended_major, gpa, supplemental_info, updated_at, submitted_at, assigned_reviewer_id",
+    )
     .eq("id", id)
-    .maybeSingle<SubmissionRow>();
+    .maybeSingle<SubmissionRow & { assigned_reviewer_id: string | null }>();
 
   if (!submission) {
     notFound();
+  }
+
+  // Name of the reviewer the student chose (if any).
+  let reviewerName: string | null = null;
+  if (submission.assigned_reviewer_id) {
+    const { data: reviewer } = await supabase
+      .from("reviewers")
+      .select("name")
+      .eq("id", submission.assigned_reviewer_id)
+      .maybeSingle<{ name: string }>();
+    reviewerName = reviewer?.name ?? null;
   }
 
   const [{ data: schools }, { data: activities }, { data: essays }, { data: feedback }] =
@@ -66,9 +79,14 @@ export default async function SubmissionDetailPage({
           </Link>
 
           <div className="mt-4 flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              {checker?.title ?? submission.type}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+                {checker?.title ?? submission.type}
+              </h1>
+              {reviewerName && (
+                <p className="mt-1 text-sm text-zinc-500">Reviewer: {reviewerName}</p>
+              )}
+            </div>
             <StatusBadge status={submission.status} />
           </div>
 

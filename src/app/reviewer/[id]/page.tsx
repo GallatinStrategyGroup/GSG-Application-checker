@@ -44,7 +44,7 @@ export default async function ReviewerSubmissionPage({
     notFound();
   }
 
-  const [{ data: schools }, { data: activities }, { data: essays }, { data: feedback }, { data: student }, { data: reviewerRows }] =
+  const [{ data: schools }, { data: activities }, { data: essays }, { data: feedback }, { data: student }, { data: reviewerRows }, { data: myReviewer }] =
     await Promise.all([
       supabase.from("target_schools").select("name, tier").eq("submission_id", id),
       supabase
@@ -63,15 +63,21 @@ export default async function ReviewerSubmissionPage({
         .select("full_name, email")
         .eq("id", submission.student_id)
         .maybeSingle<{ full_name: string | null; email: string | null }>(),
-      supabase.from("profiles").select("id, full_name, email").eq("role", "reviewer"),
+      supabase.from("reviewers").select("id, name").order("display_order"),
+      supabase
+        .from("reviewers")
+        .select("id")
+        .eq("profile_id", profile.user.id)
+        .maybeSingle<{ id: string }>(),
     ]);
 
   const checker = getChecker(submission.type);
   const studentName = student?.full_name || student?.email || "Student";
   const reviewers = (reviewerRows ?? []).map((r) => ({
     id: r.id as string,
-    name: (r.full_name as string | null) || (r.email as string | null) || "Reviewer",
+    name: r.name as string,
   }));
+  const currentReviewerId = myReviewer?.id ?? null;
 
   return (
     <>
@@ -96,6 +102,7 @@ export default async function ReviewerSubmissionPage({
             <ReviewerActions
               submissionId={submission.id}
               currentUserId={profile.user.id}
+              currentReviewerId={currentReviewerId}
               reviewers={reviewers}
               initialStatus={submission.status}
               initialAssignee={submission.assigned_reviewer_id}

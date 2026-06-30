@@ -74,3 +74,20 @@ reviewer:
 Once a person's role is `reviewer`, they log in at `/login` like anyone else and
 are taken to the **Review queue** at `/reviewer`, where they can open
 submissions, assign them, and write feedback.
+
+## Reviewers students can choose from
+Students pick a reviewer at the end of a checker. Those reviewer cards come from
+the `reviewers` table (separate from logins, so we can show sample people now and
+attach real accounts later). The schema seeds four **sample reviewers** (Dr.
+Bolger, etc.) so the screen looks populated right away.
+
+The number under each reviewer ("Helping N students now"):
+- If 3 or more real students are actually waiting on that reviewer, it shows the
+  **real** count.
+- If fewer than 3, it shows a **lively placeholder** number that shifts day to
+  day. Turn-around time (capped at ~2 days, faster when quiet) follows from it.
+
+When you send me the real reviewers, I'll replace the samples. To do it yourself:
+edit rows in **Table Editor → reviewers** (add `name`, `headline`, `bio`, and an
+`avatar_url` for a photo). To let a real reviewer's login see their assigned work
+in the queue, set that reviewer row's `profile_id` to their account's id.

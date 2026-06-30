@@ -14,6 +14,7 @@ interface ReviewerOption {
 export function ReviewerActions({
   submissionId,
   currentUserId,
+  currentReviewerId,
   reviewers,
   initialStatus,
   initialAssignee,
@@ -21,7 +22,11 @@ export function ReviewerActions({
   initialFeedbackId,
 }: {
   submissionId: string;
+  // The logged-in reviewer's profile id (used to author feedback).
   currentUserId: string;
+  // The logged-in reviewer's row in the reviewers table, if their account is
+  // linked to one (used for "assign to me"). Null for staff not set up as a card.
+  currentReviewerId: string | null;
   reviewers: ReviewerOption[];
   initialStatus: SubmissionStatus;
   initialAssignee: string | null;
@@ -146,11 +151,11 @@ export function ReviewerActions({
             ))}
           </select>
         </label>
-        {assignee !== currentUserId && (
+        {currentReviewerId && assignee !== currentReviewerId && (
           <button
             type="button"
             disabled={busy}
-            onClick={() => changeAssignee(currentUserId)}
+            onClick={() => changeAssignee(currentReviewerId)}
             className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
           >
             Assign to me

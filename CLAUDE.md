@@ -45,8 +45,15 @@ audience is families. The three homepage boxes are the focal point.
   drafts. Role lives in `profiles.role` ('student'|'reviewer'); promote a
   reviewer by editing that row in Supabase.
 - **Key routes:** `/` (three checker cards) · `/start/[type]` (intake + form,
-  save draft / submit) · `/login` `/signup` · `/submissions` + `/submissions/[id]`
-  (student) · `/reviewer` + `/reviewer/[id]` (reviewer queue + feedback).
+  save draft / submit, ends with reviewer picker) · `/login` `/signup` ·
+  `/submissions` + `/submissions/[id]` (student) · `/reviewer` +
+  `/reviewer/[id]` (reviewer queue + feedback).
+- **Reviewer picker:** `reviewers` table holds public-facing cards (name,
+  headline, bio, avatar, accepting), decoupled from logins via optional
+  `profile_id`. Schema seeds sample reviewers; real ones swap in later. Queue
+  count = `reviewer_active_counts()` RPC (security definer, aggregate only);
+  display rule + turn-around live in `src/lib/reviewers.ts` (real if ≥3 waiting,
+  else a daily-fluctuating fake; turn-around capped ~2 days).
 - **Setup steps for the owner:** `docs/SETUP.md`.
 
 ## Tech note (read before writing code)

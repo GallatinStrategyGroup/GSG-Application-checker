@@ -30,21 +30,30 @@ export default async function ReviewerQueuePage() {
 
   const rows = (data ?? []) as QueueRow[];
 
-  // Look up student + assignee display names in one query.
-  const ids = Array.from(
-    new Set(
-      rows.flatMap((r) => [r.student_id, r.assigned_reviewer_id].filter(Boolean) as string[]),
-    ),
+  // Student names come from profiles; assignee names come from the reviewers table.
+  const studentIds = Array.from(new Set(rows.map((r) => r.student_id)));
+  const reviewerIds = Array.from(
+    new Set(rows.map((r) => r.assigned_reviewer_id).filter(Boolean) as string[]),
   );
-  const names = new Map<string, string>();
-  if (ids.length) {
+
+  const studentNames = new Map<string, string>();
+  if (studentIds.length) {
     const { data: people } = await supabase
       .from("profiles")
       .select("id, full_name, email")
-      .in("id", ids);
+      .in("id", studentIds);
     (people ?? []).forEach((p) =>
-      names.set(p.id, p.full_name || p.email || "Unknown"),
+      studentNames.set(p.id, p.full_name || p.email || "Unknown"),
     );
+  }
+
+  const reviewerNames = new Map<string, string>();
+  if (reviewerIds.length) {
+    const { data: revs } = await supabase
+      .from("reviewers")
+      .select("id, name")
+      .in("id", reviewerIds);
+    (revs ?? []).forEach((r) => reviewerNames.set(r.id, r.name));
   }
 
   return (
@@ -74,10 +83,10 @@ export default async function ReviewerQueuePage() {
                         {getChecker(r.type)?.title ?? r.type}
                       </p>
                       <p className="mt-0.5 truncate text-sm text-zinc-500">
-                        {names.get(r.student_id) ?? "Unknown student"}
+                        {studentNames.get(r.student_id) ?? "Unknown student"}
                         {r.intended_major ? ` · ${r.intended_major}` : ""}
                         {r.assigned_reviewer_id
-                          ? ` · Assigned to ${names.get(r.assigned_reviewer_id) ?? "reviewer"}`
+                          ? ` · Assigned to ${reviewerNames.get(r.assigned_reviewer_id) ?? "reviewer"}`
                           : " · Unassigned"}
                       </p>
                     </div>
