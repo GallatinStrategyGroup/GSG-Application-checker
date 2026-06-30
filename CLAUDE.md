@@ -34,6 +34,21 @@ audience is families. The three homepage boxes are the focal point.
   privacy carefully.
 - Explain steps in plain language — the owner is new to coding.
 
+## Current state (Phases 1–4 complete)
+- **Stack:** Next.js 16 (App Router, TS, Tailwind v4) + Supabase (Postgres,
+  Auth, Row Level Security). Deploys on Vercel.
+- **DB schema + privacy rules:** `supabase/schema.sql` (run once in Supabase).
+- **Supabase clients:** `src/lib/supabase/{client,server}.ts`; session refresh
+  in `src/proxy.ts` (Next.js 16 renamed middleware → "proxy").
+- **Auth:** email/password. Guests start with an anonymous session so drafts
+  save immediately; signing up converts that session to a real account, keeping
+  drafts. Role lives in `profiles.role` ('student'|'reviewer'); promote a
+  reviewer by editing that row in Supabase.
+- **Key routes:** `/` (three checker cards) · `/start/[type]` (intake + form,
+  save draft / submit) · `/login` `/signup` · `/submissions` + `/submissions/[id]`
+  (student) · `/reviewer` + `/reviewer/[id]` (reviewer queue + feedback).
+- **Setup steps for the owner:** `docs/SETUP.md`.
+
 ## Tech note (read before writing code)
 This is Next.js 16 — a newer version with breaking changes from older Next.js.
 APIs, conventions, and file structure may differ from what you expect. Before
