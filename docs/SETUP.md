@@ -25,6 +25,13 @@ this once. Take your time — nothing here is permanent or hard to undo.
 3. Click **Run**. You should see "Success". This creates all the tables and the
    privacy rules.
 
+## Step 2b — Turn on anonymous sign-ins
+Students can start filling out a checker before creating an account; their draft
+saves to the database under a temporary anonymous session (and gets linked to a
+real account in Phase 3).
+1. In Supabase, go to **Authentication → Sign In / Providers** (or **Settings**).
+2. Enable **Anonymous sign-ins**. Save.
+
 ## Step 3 — Get your three keys
 1. In Supabase, go to **Project Settings** (gear icon) → **API**.
 2. You'll need three values:
