@@ -20,3 +20,25 @@ export async function getCurrentUser(): Promise<User | null> {
 export function isSignedIn(user: User | null): boolean {
   return Boolean(user) && !user!.is_anonymous;
 }
+
+export type Role = "student" | "reviewer";
+
+export interface CurrentProfile {
+  user: User;
+  role: Role;
+}
+
+// The signed-in user together with their role, or null if not signed in.
+export async function getCurrentProfile(): Promise<CurrentProfile | null> {
+  const user = await getCurrentUser();
+  if (!isSignedIn(user)) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user!.id)
+    .maybeSingle<{ role: Role }>();
+
+  return { user: user!, role: data?.role ?? "student" };
+}

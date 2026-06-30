@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { getCurrentUser, isSignedIn } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
 
 export async function SiteHeader() {
-  const user = await getCurrentUser();
-  const signedIn = isSignedIn(user);
+  const profile = await getCurrentProfile();
 
   return (
     <header className="border-b border-zinc-200 bg-white">
@@ -17,7 +16,16 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex items-center gap-5">
-          {signedIn ? (
+          {!profile && (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+            >
+              Log in
+            </Link>
+          )}
+
+          {profile?.role === "student" && (
             <>
               <Link
                 href="/submissions"
@@ -27,13 +35,18 @@ export async function SiteHeader() {
               </Link>
               <LogoutButton />
             </>
-          ) : (
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-            >
-              Log in
-            </Link>
+          )}
+
+          {profile?.role === "reviewer" && (
+            <>
+              <Link
+                href="/reviewer"
+                className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+              >
+                Review queue
+              </Link>
+              <LogoutButton />
+            </>
           )}
         </nav>
       </div>

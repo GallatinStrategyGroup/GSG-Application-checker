@@ -71,5 +71,6 @@ reviewer:
 2. Find that person's row and change `role` from `student` to `reviewer`.
 3. Save. That's it.
 
-> Reviewer login and the reviewer dashboard arrive in Phase 4. Student login
-> arrives in Phase 3. Phase 1 (this step) is just the database + homepage.
+Once a person's role is `reviewer`, they log in at `/login` like anyone else and
+are taken to the **Review queue** at `/reviewer`, where they can open
+submissions, assign them, and write feedback.

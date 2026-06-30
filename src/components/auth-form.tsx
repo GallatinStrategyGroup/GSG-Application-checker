@@ -70,7 +70,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           })
           .eq("id", user.id);
 
-        router.push("/submissions");
+        // Send reviewers to their queue, students to their submissions.
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        router.push(profile?.role === "reviewer" ? "/reviewer" : "/submissions");
         router.refresh();
         return;
       }

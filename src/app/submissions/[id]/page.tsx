@@ -5,7 +5,13 @@ import { getCurrentUser, isSignedIn } from "@/lib/auth";
 import { getChecker } from "@/lib/checkers";
 import { SiteHeader } from "@/components/site-header";
 import { StatusBadge } from "@/components/status-badge";
-import { TIER_LABELS, type SubmissionRow } from "@/lib/submissions";
+import {
+  SubmissionDetail,
+  type ActivityView,
+  type EssayView,
+  type SchoolView,
+} from "@/components/submission-detail";
+import { type SubmissionRow } from "@/lib/submissions";
 
 export default async function SubmissionDetailPage({
   params,
@@ -83,85 +89,16 @@ export default async function SubmissionDetailPage({
           </section>
 
           {/* Read-only summary of what was submitted */}
-          <section className="mt-8 space-y-6">
-            <DetailBlock title="About you">
-              <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                <Row label="Intended major" value={submission.intended_major} />
-                <Row label="GPA" value={submission.gpa} />
-              </dl>
-              {schools && schools.length > 0 && (
-                <ul className="mt-3 space-y-1 text-sm text-zinc-700">
-                  {schools.map((s, i) => (
-                    <li key={i}>
-                      {s.name}{" "}
-                      <span className="text-zinc-400">— {TIER_LABELS[s.tier] ?? s.tier}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </DetailBlock>
-
-            {activities && activities.length > 0 && (
-              <DetailBlock title="Activities">
-                <ul className="space-y-3 text-sm text-zinc-700">
-                  {activities.map((a, i) => (
-                    <li key={i} className="border-l-2 border-zinc-200 pl-3">
-                      <p className="font-medium text-zinc-900">
-                        {[a.role, a.organization].filter(Boolean).join(" · ") || "Activity"}
-                      </p>
-                      {(a.years || a.hours) && (
-                        <p className="text-zinc-500">
-                          {[a.years, a.hours].filter(Boolean).join(" · ")}
-                        </p>
-                      )}
-                      {a.description && <p className="mt-1">{a.description}</p>}
-                    </li>
-                  ))}
-                </ul>
-              </DetailBlock>
-            )}
-
-            {essays && essays.length > 0 && (
-              <DetailBlock title="Essays">
-                <div className="space-y-4 text-sm text-zinc-700">
-                  {essays.map((e, i) => (
-                    <div key={i}>
-                      {e.title && <p className="font-medium text-zinc-900">{e.title}</p>}
-                      {e.body && <p className="mt-1 whitespace-pre-wrap">{e.body}</p>}
-                    </div>
-                  ))}
-                </div>
-              </DetailBlock>
-            )}
-
-            {submission.supplemental_info && (
-              <DetailBlock title="Additional info">
-                <p className="whitespace-pre-wrap text-sm text-zinc-700">
-                  {submission.supplemental_info}
-                </p>
-              </DetailBlock>
-            )}
-          </section>
+          <div className="mt-8">
+            <SubmissionDetail
+              submission={submission}
+              schools={(schools ?? []) as SchoolView[]}
+              activities={(activities ?? []) as ActivityView[]}
+              essays={(essays ?? []) as EssayView[]}
+            />
+          </div>
         </div>
       </main>
     </>
-  );
-}
-
-function DetailBlock({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6">
-      <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
-      <div className="mt-3">{children}</div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div>
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="text-zinc-900">{value || "—"}</dd>
-    </div>
   );
 }
