@@ -269,15 +269,24 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
         <h2 className="text-lg font-semibold text-blue-900">Submitted — thank you!</h2>
         <p className="mt-2 text-sm text-blue-900">
-          Your work is in the queue and a reviewer will leave written feedback. Once accounts are
-          available, you&apos;ll log in to read it and track your submissions.
+          Your work is in the queue and a reviewer will leave written feedback. Create an account to
+          track this submission and read your feedback when it&apos;s ready — what you just submitted
+          stays attached to it.
         </p>
-        <Link
-          href="/"
-          className="mt-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-        >
-          Back to home
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            href="/signup"
+            className="inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+          >
+            Create an account
+          </Link>
+          <Link
+            href="/"
+            className="inline-block rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50"
+          >
+            Back to home
+          </Link>
+        </div>
       </div>
     );
   }

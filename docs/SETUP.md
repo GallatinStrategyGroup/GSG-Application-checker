@@ -32,6 +32,16 @@ real account in Phase 3).
 1. In Supabase, go to **Authentication → Sign In / Providers** (or **Settings**).
 2. Enable **Anonymous sign-ins**. Save.
 
+## Step 2c — (Recommended for now) email confirmation
+Supabase can require students to click a confirmation link in their email before
+their account is active. While you're building and testing, it's simpler to turn
+this off so accounts work instantly:
+1. **Authentication → Sign In / Providers → Email**.
+2. Turn **Confirm email** off (you can turn it back on before launch).
+
+If you leave it on, the app still works — after signing up the student sees
+"Check your email to confirm, then log in."
+
 ## Step 3 — Get your three keys
 1. In Supabase, go to **Project Settings** (gear icon) → **API**.
 2. You'll need three values:
