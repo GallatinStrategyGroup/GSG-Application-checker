@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isSignedIn } from "@/lib/auth";
 import { getChecker } from "@/lib/checkers";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { StatusBadge } from "@/components/status-badge";
+import { Container } from "@/components/ui/container";
 import {
   SubmissionDetail,
   type ActivityView,
@@ -86,27 +88,30 @@ export default async function SubmissionDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">
-        <div className="mx-auto w-full max-w-3xl px-6 py-10 sm:py-14">
-          <Link href="/submissions" className="text-sm font-medium text-blue-700 hover:underline">
+      <main className="flex-1 bg-zinc-50/60">
+        <Container size="lg" className="py-10 sm:py-14">
+          <Link
+            href="/submissions"
+            className="text-sm font-medium text-blue-700 transition-colors hover:text-blue-800"
+          >
             ← Your submissions
           </Link>
 
           <div className="mt-4 flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              <h1 className="font-serif text-3xl font-medium tracking-tight text-zinc-900 sm:text-4xl">
                 {checker?.title ?? submission.type}
               </h1>
               {reviewerName && (
-                <p className="mt-1 text-sm text-zinc-500">Reviewer: {reviewerName}</p>
+                <p className="mt-1.5 text-sm text-zinc-500">Reviewer: {reviewerName}</p>
               )}
             </div>
             <StatusBadge status={submission.status} />
           </div>
 
           {/* Feedback first — it's what they came back for. */}
-          <section className="mt-8 rounded-xl border border-zinc-200 bg-white p-6">
-            <h2 className="text-lg font-semibold text-zinc-900">Reviewer feedback</h2>
+          <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="font-serif text-xl font-medium text-zinc-900">Reviewer feedback</h2>
             {feedback?.body ? (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
                 {feedback.body}
@@ -130,8 +135,9 @@ export default async function SubmissionDetailPage({
               files={files}
             />
           </div>
-        </div>
+        </Container>
       </main>
+      <SiteFooter />
     </>
   );
 }

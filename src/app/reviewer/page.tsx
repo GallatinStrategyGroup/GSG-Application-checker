@@ -61,7 +61,9 @@ export default async function ReviewerQueuePage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:py-14">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Review queue</h1>
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-zinc-900">
+            Review queue
+          </h1>
           <p className="mt-2 text-sm text-zinc-600">
             {rows.length} submission{rows.length === 1 ? "" : "s"} in the queue.
           </p>

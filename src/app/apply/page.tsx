@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Container } from "@/components/ui/container";
 
 const OPTIONS = [
   {
@@ -21,14 +23,17 @@ export default function ApplyPage() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-3xl px-6 py-14 sm:py-20">
-          <Link href="/" className="text-sm font-medium text-blue-700 hover:underline">
+        <Container size="lg" className="py-14 sm:py-20">
+          <Link
+            href="/"
+            className="text-sm font-medium text-blue-700 transition-colors hover:text-blue-800"
+          >
             ← Home
           </Link>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight text-zinc-900">
             Application Check
           </h1>
-          <p className="mt-2 text-lg text-zinc-600">
+          <p className="mt-3 text-lg text-zinc-600">
             Is your application finished, or still in progress?
           </p>
 
@@ -37,9 +42,9 @@ export default function ApplyPage() {
               <Link
                 key={o.href}
                 href={o.href}
-                className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                className="group flex flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:shadow-zinc-900/5"
               >
-                <h2 className="text-xl font-semibold text-zinc-900">{o.title}</h2>
+                <h2 className="font-serif text-2xl font-medium text-zinc-900">{o.title}</h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">{o.description}</p>
                 <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
                   Start
@@ -50,8 +55,9 @@ export default function ApplyPage() {
               </Link>
             ))}
           </div>
-        </div>
+        </Container>
       </main>
+      <SiteFooter />
     </>
   );
 }

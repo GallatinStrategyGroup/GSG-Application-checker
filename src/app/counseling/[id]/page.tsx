@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { Avatar } from "@/components/avatar";
 import { IntroCallForm } from "@/components/intro-call-form";
 
@@ -44,10 +45,10 @@ export default async function CounselorProfilePage({
           <div className="mt-6 flex items-center gap-5">
             <Avatar name={counselor.name} url={counselor.avatar_url} size={72} />
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+              <h1 className="font-serif text-4xl font-medium tracking-tight text-zinc-900">
                 {counselor.name}
               </h1>
-              {counselor.headline && <p className="mt-1 text-blue-700">{counselor.headline}</p>}
+              {counselor.headline && <p className="mt-1.5 text-blue-700">{counselor.headline}</p>}
             </div>
           </div>
 
@@ -55,8 +56,8 @@ export default async function CounselorProfilePage({
             <p className="mt-6 text-zinc-700 leading-relaxed">{counselor.bio}</p>
           )}
 
-          <div className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-zinc-900">Book a free intro call</h2>
+          <div className="mt-10 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="font-serif text-2xl font-medium text-zinc-900">Book a free intro call</h2>
             <p className="mt-1 text-sm text-zinc-500">
               A no-commitment 15-minute call. {counselor.name.split(" ")[0]} will share a plan and
               pricing on the call.
@@ -67,6 +68,7 @@ export default async function CounselorProfilePage({
           </div>
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

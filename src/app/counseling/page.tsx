@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { Avatar } from "@/components/avatar";
 
 interface Counselor {
@@ -40,7 +41,7 @@ export default async function CounselingPage() {
             <Link href="/" className="text-sm font-medium text-blue-700 hover:underline">
               ← Home
             </Link>
-            <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
+            <h1 className="mt-4 max-w-3xl font-serif text-4xl font-medium tracking-tight text-zinc-900 sm:text-5xl">
               1-on-1 counseling with the{" "}
               <span className="text-blue-700">best counselors in the country.</span>
             </h1>
@@ -68,7 +69,9 @@ export default async function CounselingPage() {
 
         {/* Counselor gallery */}
         <section className="mx-auto w-full max-w-6xl px-6 pb-20">
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">Meet the counselors</h2>
+          <h2 className="font-serif text-3xl font-medium tracking-tight text-zinc-900">
+            Meet the counselors
+          </h2>
 
           {counselors.length === 0 ? (
             <p className="mt-8 rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-500">
@@ -110,11 +113,7 @@ export default async function CounselingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-zinc-200 bg-white">
-        <div className="mx-auto w-full max-w-6xl px-6 py-8 text-sm text-zinc-500">
-          © Gallatin Strategy Group
-        </div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

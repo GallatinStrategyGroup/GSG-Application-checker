@@ -41,7 +41,7 @@ export default async function IntroCallsPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-3xl px-6 py-10 sm:py-14">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-zinc-900">
             Intro call requests
           </h1>
           <p className="mt-2 text-sm text-zinc-600">

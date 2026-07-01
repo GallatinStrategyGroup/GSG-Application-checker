@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isStripeConfigured, getStripe } from "@/lib/stripe";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Button } from "@/components/ui/button";
 
 // Stripe redirects here after checkout. We verify the payment server-side with
 // the secret key, then mark the submission as submitted so it enters the queue.
@@ -22,7 +23,6 @@ export default async function PaySuccessPage({
       if (session.payment_status === "paid" && session.metadata?.submission_id === submission) {
         paid = true;
 
-        // Mark the submission submitted (RLS ensures the student owns it).
         const supabase = await createClient();
         await supabase
           .from("submissions")
@@ -37,50 +37,44 @@ export default async function PaySuccessPage({
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">
-        <div className="mx-auto w-full max-w-lg px-6 py-20">
+      <main className="flex flex-1 items-center justify-center bg-zinc-50/60 px-6 py-20">
+        <div className="w-full max-w-md">
           {paid ? (
-            <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-600 text-xl font-bold text-white">
+            <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-2xl font-bold text-white">
                 ✓
               </div>
-              <h1 className="mt-4 text-2xl font-semibold text-green-900">Payment received</h1>
-              <p className="mt-2 text-sm text-green-900">
+              <h1 className="mt-5 font-serif text-3xl font-medium tracking-tight text-zinc-900">
+                Payment received
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-600">
                 Your application is submitted and in your counselor&apos;s queue. Create an account
                 to track it and read your feedback when it&apos;s ready.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/signup"
-                  className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
-                >
-                  Create an account
-                </Link>
-                <Link
-                  href="/"
-                  className="rounded-lg border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
-                >
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <Button href="/signup">Create an account</Button>
+                <Button href="/" variant="secondary">
                   Back to home
-                </Link>
+                </Button>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
-              <h1 className="text-2xl font-semibold text-amber-900">Payment not confirmed</h1>
-              <p className="mt-2 text-sm text-amber-900">
-                We couldn&apos;t confirm this payment. If you were charged, don&apos;t worry — nothing
-                is lost. Head back and try again, or contact us.
+            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center">
+              <h1 className="font-serif text-2xl font-medium text-amber-900">
+                Payment not confirmed
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-amber-900">
+                We couldn&apos;t confirm this payment. If you were charged, don&apos;t worry —
+                nothing is lost. Head back and try again, or contact us.
               </p>
-              <Link
-                href="/"
-                className="mt-6 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
-              >
-                Back to home
-              </Link>
+              <div className="mt-6">
+                <Button href="/">Back to home</Button>
+              </div>
             </div>
           )}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

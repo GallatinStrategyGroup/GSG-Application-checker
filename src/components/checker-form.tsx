@@ -349,7 +349,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
         <p className="font-medium">Saving isn&apos;t connected yet.</p>
         <p className="mt-1">
           Add your Supabase keys (see <code className="font-mono">docs/SETUP.md</code>) to enable
@@ -361,7 +361,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   if (submitted) {
     return (
-      <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
         <h2 className="text-lg font-semibold text-blue-900">Submitted — thank you!</h2>
         <p className="mt-2 text-sm text-blue-900">
           Your work is in the queue and your counselor will leave written feedback. Create an account
@@ -387,13 +387,13 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   }
 
   if (loading) {
-    return <p className="mt-8 text-sm text-zinc-500">Loading…</p>;
+    return <p className="text-sm text-zinc-500">Loading…</p>;
   }
 
   // ---- Wizard --------------------------------------------------------------
 
   return (
-    <div className="mt-8">
+    <div>
       {/* Stepper */}
       <ol className="flex items-center gap-2 sm:gap-3">
         {STEP_LABELS.map((label, i) => {
