@@ -12,6 +12,7 @@ export interface Service {
   points: string[];
   href: string;
   cta: string;
+  priceLabel: string;
   featured?: boolean;
 }
 
@@ -25,6 +26,7 @@ export const SERVICES: Service[] = [
     points: ["Activity-by-activity read", "Tailored to your school list"],
     href: "/start/ec",
     cta: "Check my ECs",
+    priceLabel: "From $63.99",
   },
   {
     key: "application",
@@ -35,6 +37,7 @@ export const SERVICES: Service[] = [
     points: ["Finished or work-in-progress", "Essays, activities & supplements"],
     href: "/apply",
     cta: "Check my application",
+    priceLabel: "From $189.99",
   },
   {
     key: "counseling",
@@ -45,6 +48,7 @@ export const SERVICES: Service[] = [
     points: ["Free 15-minute intro call", "Personalized, ongoing guidance"],
     href: "/counseling",
     cta: "Meet the counselors",
+    priceLabel: "Free intro call",
     featured: true,
   },
 ];

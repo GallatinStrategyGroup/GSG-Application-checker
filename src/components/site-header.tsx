@@ -1,35 +1,46 @@
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
+import { Container } from "@/components/ui/container";
 
 export async function SiteHeader() {
   const profile = await getCurrentProfile();
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold text-zinc-900">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-blue-700 text-sm font-bold text-white">
+    <header className="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/80 backdrop-blur-md">
+      <Container className="flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 font-serif text-base font-semibold text-white">
             G
           </span>
-          GSG Application Checker
+          <span className="font-serif text-lg font-semibold tracking-tight text-zinc-900">
+            Gallatin Strategy Group
+          </span>
         </Link>
 
-        <nav className="flex items-center gap-5">
+        <nav className="flex items-center gap-6 text-sm">
           {!profile && (
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-            >
-              Log in
-            </Link>
+            <>
+              <Link
+                href="/counseling"
+                className="hidden font-medium text-zinc-600 transition-colors hover:text-zinc-900 sm:inline"
+              >
+                Counselors
+              </Link>
+              <Link
+                href="/login"
+                className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+              >
+                Log in
+              </Link>
+            </>
           )}
 
           {profile?.role === "student" && (
             <>
               <Link
                 href="/submissions"
-                className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+                className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
               >
                 Your submissions
               </Link>
@@ -41,13 +52,13 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/reviewer"
-                className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+                className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
               >
                 Review queue
               </Link>
               <Link
                 href="/reviewer/intro-calls"
-                className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+                className="hidden font-medium text-zinc-600 transition-colors hover:text-zinc-900 sm:inline"
               >
                 Intro calls
               </Link>
@@ -55,7 +66,7 @@ export async function SiteHeader() {
             </>
           )}
         </nav>
-      </div>
+      </Container>
     </header>
   );
 }
