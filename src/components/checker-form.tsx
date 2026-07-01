@@ -50,8 +50,9 @@ const STEP_LABELS = ["Your work", "Pick a counselor", "Payment"];
 
 // ---- Shared styles ---------------------------------------------------------
 
-const inputClass =
-  "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const fieldBase =
+  "rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const inputClass = `w-full ${fieldBase}`;
 const labelClass = "block text-sm font-medium text-zinc-700";
 const primaryBtn =
   "rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60";
@@ -459,30 +460,32 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 </p>
                 <div className="mt-3 space-y-2">
                   {schools.map((s, i) => (
-                    <div key={i} className="flex gap-2">
+                    <div key={i} className="flex flex-col gap-2 sm:flex-row">
                       <input
-                        className={inputClass}
+                        className={`${fieldBase} w-full min-w-0 sm:flex-1`}
                         value={s.name}
                         onChange={(e) => setSchools(update(schools, i, { name: e.target.value }))}
-                        placeholder="School name"
+                        placeholder="School name (e.g. Boston University)"
                       />
-                      <select
-                        className={`${inputClass} w-32 shrink-0`}
-                        value={s.tier}
-                        onChange={(e) =>
-                          setSchools(update(schools, i, { tier: e.target.value as Tier }))
-                        }
-                      >
-                        {TIERS.map((t) => (
-                          <option key={t.value} value={t.value}>
-                            {t.label}
-                          </option>
-                        ))}
-                      </select>
-                      <RemoveButton
-                        disabled={schools.length === 1}
-                        onClick={() => setSchools(removeAt(schools, i))}
-                      />
+                      <div className="flex gap-2">
+                        <select
+                          className={`${fieldBase} flex-1 sm:w-36 sm:flex-none`}
+                          value={s.tier}
+                          onChange={(e) =>
+                            setSchools(update(schools, i, { tier: e.target.value as Tier }))
+                          }
+                        >
+                          {TIERS.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                        <RemoveButton
+                          disabled={schools.length === 1}
+                          onClick={() => setSchools(removeAt(schools, i))}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
