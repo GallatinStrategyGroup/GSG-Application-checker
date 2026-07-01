@@ -81,7 +81,7 @@ export default async function CounselingPage() {
               Counselor profiles will appear here shortly.
             </p>
           ) : (
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <div className="mt-8 grid items-start gap-6 sm:grid-cols-2">
               {counselors.map((c) => {
                 const photo = getCounselorPhoto(c.name);
                 return (

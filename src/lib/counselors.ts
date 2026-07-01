@@ -24,24 +24,29 @@ export function getCounselorPhoto(name: string): CounselorPhoto | null {
 export const COUNSELOR_CVS: Record<string, CvSection[]> = {
   "Dr. Benjamin Bolger": [
     {
+      heading: "Featured in",
+      items: [
+        "The New York Times Magazine",
+        "The Harvard Crimson",
+        "The Chronicle of Higher Education",
+      ],
+    },
+    {
       heading: "Education",
       items: [
-        "Doctorate — Harvard University",
-        "More than a dozen graduate degrees from institutions including Stanford and Columbia",
+        "Doctor of Design — Harvard University Graduate School of Design",
+        "Master's degrees from Oxford, Cambridge, Stanford, Columbia, Brown, Dartmouth, and Brandeis",
         "B.A. with highest honors — University of Michigan",
+        "16+ academic degrees — among the most credentialed people in the country",
       ],
     },
     {
       heading: "Experience",
       items: [
         "Founder, Bolger Strategic — 20+ years of college admissions consulting",
-        "Has guided students into many of the most selective colleges in the world",
-        "Previously worked at the White House",
+        "Multiple-time recipient of Harvard's Derek Bok teaching award",
+        "Has guided students into many of the world's most selective colleges",
       ],
-    },
-    {
-      heading: "Honors",
-      items: ["Multiple-time recipient of Harvard's Derek Bok teaching award"],
     },
   ],
 
@@ -49,9 +54,9 @@ export const COUNSELOR_CVS: Record<string, CvSection[]> = {
     {
       heading: "Experience",
       items: [
+        "Assistant Dean of Enrollment Management, Pepperdine University (Graziadio Business School)",
         "Founder, The Admissions Desk",
-        "Over two decades of experience in higher education",
-        "Served on admission committees at selective institutions",
+        "Over two decades reading applications and leading admissions in higher education",
       ],
     },
     {
@@ -81,37 +86,15 @@ export const COUNSELOR_CVS: Record<string, CvSection[]> = {
     {
       heading: "Experience",
       items: [
-        "Senior Consultant, Bolger Strategic (2011–present) — comprehensive college admissions consulting alongside Dr. Benjamin Bolger; strategy built on Howard Gardner's Theory of Multiple Intelligences; extensive essay editing and narrative storytelling.",
-        "Teaching Fellow, Harvard University (2021–present) — Socratic instruction on moral and political philosophy; two-time recipient of the Derek Bok Certificate of Distinction in Teaching.",
-        "Inaugural Fellow & Ambassador, Shafik Gabr Foundation, East-West Initiative (2013–present) — the Foundation's first American Ambassador; a decade of US–Egypt citizen diplomacy.",
-        "Chief of Staff / Legislative Aide, Massachusetts House of Representatives (2000–2011) — directed legislative strategy across education, veterans' affairs, land use, and budget.",
+        "Senior Consultant, Bolger Strategic (2011–present) — comprehensive admissions consulting and expert college essay editing.",
+        "Teaching Fellow, Harvard University — two-time recipient of the Derek Bok Certificate of Distinction in Teaching.",
       ],
     },
     {
       heading: "Education",
       items: [
+        "B.A., Government — Harvard University",
         "Master of Liberal Arts, Globalization — Dartmouth College (expected 2027)",
-        "B.A., Government — Harvard University (2003)",
-        "Graduate, Harvard Mediation Program — Harvard Law School (2017)",
-        "Certificate in Theology and Ministry — Princeton Theological Seminary (2016)",
-        "Seminar in Moral Foundations of Law — The Witherspoon Institute, Princeton (2021)",
-      ],
-    },
-    {
-      heading: "Fellowships",
-      items: [
-        "Edmund Burke Fellow — The Academy of Philosophy & Letters (2026)",
-        "C.S. Lewis Fellow — Discovery Institute (2026)",
-        "Burke to Buckley Fellow — National Review Institute (2024)",
-        "Constitution Fellow — Center for the Study of Statesmanship (2020)",
-      ],
-    },
-    {
-      heading: "Honors",
-      items: [
-        "Derek Bok Certificate of Distinction in Teaching, Harvard University (2024 & 2026)",
-        "Ten Outstanding Young Americans, U.S. Jaycees (2010)",
-        "Henry Toll Fellow, Council of State Governments (2004)",
       ],
     },
   ],

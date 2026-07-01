@@ -8,11 +8,11 @@ delete from public.reviewers;
 
 insert into public.reviewers (name, headline, bio, avatar_url, display_order) values
   ('Dr. Benjamin Bolger', 'Founder, Bolger Strategic',
-   'Founder of Bolger Strategic and among the most credentialed educators in the country — a Harvard doctorate plus more than a dozen graduate degrees from institutions including Stanford and Columbia. Over 20 years guiding students into the most selective colleges, and a multiple-time recipient of Harvard''s Derek Bok teaching award.',
+   'Among the most credentialed people in the country — 16+ degrees including a Harvard doctorate (Doctor of Design) and master''s from Oxford, Cambridge, and Stanford. Featured in The New York Times Magazine and The Harvard Crimson, and a multiple-time recipient of Harvard''s Derek Bok teaching award.',
    '/counselors/benjamin-bolger.webp', 1),
 
-  ('Dr. Arman Davtyan', 'Founder, The Admissions Desk',
-   'Founder of The Admissions Desk with over two decades in higher education, including service on admission committees at selective institutions. An immigrant who navigated the college search with little guidance, he blends deep industry knowledge with compassionate, individualized advising.',
+  ('Dr. Arman Davtyan', 'Assistant Dean of Enrollment Mgmt, Pepperdine',
+   'Founder of The Admissions Desk and Assistant Dean of Enrollment Management at Pepperdine''s Graziadio Business School, with over two decades reading applications and leading admissions at the university level. Blends insider admissions knowledge with compassionate, individualized advising.',
    '/counselors/arman-davtyan.webp', 2),
 
   ('Dr. Daniel Sullivan', 'Harvard-trained admissions strategist',
