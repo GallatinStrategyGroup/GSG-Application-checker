@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { Container } from "@/components/ui/container";
 
 export function SiteFooter() {
@@ -8,9 +9,7 @@ export function SiteFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 font-serif text-base font-semibold text-white">
-                G
-              </span>
+              <BrandMark className="h-8 w-8" />
               <span className="font-serif text-lg font-semibold tracking-tight text-zinc-900">
                 Gallatin Strategy Group
               </span>

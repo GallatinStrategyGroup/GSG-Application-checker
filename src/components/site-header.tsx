@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
+import { BrandMark } from "@/components/brand-mark";
 import { Container } from "@/components/ui/container";
 
 export async function SiteHeader() {
@@ -10,9 +11,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 font-serif text-base font-semibold text-white">
-            G
-          </span>
+          <BrandMark className="h-8 w-8" />
           <span className="font-serif text-lg font-semibold tracking-tight text-zinc-900">
             Gallatin Strategy Group
           </span>
