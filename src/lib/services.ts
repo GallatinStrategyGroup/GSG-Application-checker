@@ -18,22 +18,11 @@ export interface Service {
 
 export const SERVICES: Service[] = [
   {
-    key: "ec",
-    eyebrow: "Quick check",
-    title: "EC Check",
-    description:
-      "Find out whether your extracurriculars are strong enough for your target schools — and exactly how to make them stronger.",
-    points: ["Activity-by-activity read", "Tailored to your school list"],
-    href: "/start/ec",
-    cta: "Check my ECs",
-    priceLabel: "From $63.99",
-  },
-  {
     key: "application",
-    eyebrow: "Most popular",
+    eyebrow: "For students",
     title: "Application Check",
     description:
-      "Submit your whole application — finished or still in progress — and get detailed, written feedback from a counselor.",
+      "Upload your application — finished or still in progress — and get detailed, written feedback from a real counselor.",
     points: ["Finished or work-in-progress", "Essays, activities & supplements"],
     href: "/apply",
     cta: "Check my application",
@@ -42,9 +31,9 @@ export const SERVICES: Service[] = [
   {
     key: "counseling",
     eyebrow: "1-on-1",
-    title: "Full Counseling",
+    title: "1-on-1 Counseling",
     description:
-      "Work directly with the best counselors in the country. Browse their profiles and book a free intro call to get started.",
+      "Work directly with the best counselors in the country. Browse profiles and book a free intro call to start.",
     points: ["Free 15-minute intro call", "Personalized, ongoing guidance"],
     href: "/counseling",
     cta: "Meet the counselors",

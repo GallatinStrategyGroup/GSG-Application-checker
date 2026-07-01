@@ -25,11 +25,6 @@ export function SiteFooter() {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Services</h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <Link href="/start/ec" className="text-zinc-600 hover:text-zinc-900">
-                  EC Check
-                </Link>
-              </li>
-              <li>
                 <Link href="/apply" className="text-zinc-600 hover:text-zinc-900">
                   Application Check
                 </Link>
