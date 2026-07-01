@@ -5,6 +5,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Avatar } from "@/components/avatar";
 
+export const metadata = { title: "1-on-1 Counseling" };
+
 interface Counselor {
   id: string;
   name: string;

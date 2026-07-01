@@ -3,6 +3,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Container } from "@/components/ui/container";
 
+export const metadata = { title: "Application Check" };
+
 const OPTIONS = [
   {
     href: "/start/finished",

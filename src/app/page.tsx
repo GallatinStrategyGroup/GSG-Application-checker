@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { ServiceIcon } from "@/components/icons";
 import { SiteHeader } from "@/components/site-header";
@@ -160,7 +161,7 @@ export default function Home() {
               {SERVICES.map((service) => {
                 const featured = service.featured;
                 return (
-                  <a
+                  <Link
                     key={service.key}
                     href={service.href}
                     className={`group relative flex flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-300 hover:-translate-y-1 ${
@@ -242,7 +243,7 @@ export default function Home() {
                         </span>
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 );
               })}
             </div>
