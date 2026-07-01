@@ -15,7 +15,7 @@ export function ReviewerPicker({
   onSelect,
 }: {
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, name: string) => void;
 }) {
   const [reviewers, setReviewers] = useState<ReviewerCard[]>([]);
   const [loads, setLoads] = useState<Record<string, number>>({});
@@ -42,7 +42,14 @@ export function ReviewerPicker({
 
       if (cancelled) return;
 
-      setReviewers((revs ?? []) as ReviewerCard[]);
+      const list = (revs ?? []) as ReviewerCard[];
+      setReviewers(list);
+
+      // Backfill the name for a selection restored from a saved draft.
+      if (selectedId) {
+        const match = list.find((r) => r.id === selectedId);
+        if (match) onSelect(match.id, match.name);
+      }
 
       const map: Record<string, number> = {};
       for (const row of (counts ?? []) as { reviewer_id: string; active_count: number }[]) {
@@ -56,6 +63,8 @@ export function ReviewerPicker({
     return () => {
       cancelled = true;
     };
+    // Fetch once on mount; selectedId is only read to backfill the saved name.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isSupabaseConfigured) {
@@ -81,7 +90,7 @@ export function ReviewerPicker({
           <button
             type="button"
             key={r.id}
-            onClick={() => onSelect(r.id)}
+            onClick={() => onSelect(r.id, r.name)}
             aria-pressed={selected}
             className={`flex flex-col rounded-xl border p-5 text-left transition ${
               selected

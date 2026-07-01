@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ReviewerPicker } from "@/components/reviewer-picker";
+import { PRICES, formatUsd } from "@/lib/pricing";
 import type { Checker } from "@/lib/checkers";
 
 // ---- Shapes of the editable rows -------------------------------------------
 
 type Tier = "reach" | "match" | "safety";
+type Step = 1 | 2 | 3;
 
 interface SchoolRow {
   name: string;
@@ -42,17 +44,25 @@ const TIERS: { value: Tier; label: string }[] = [
   { value: "safety", label: "Safety" },
 ];
 
+const STEP_LABELS = ["Your work", "Pick a counselor", "Payment"];
+
 // ---- Shared styles ---------------------------------------------------------
 
 const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-sm font-medium text-zinc-700";
+const primaryBtn =
+  "rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60";
+const secondaryBtn =
+  "rounded-lg border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-60";
 
 // ---------------------------------------------------------------------------
 
 export function CheckerForm({ checker }: { checker: Checker }) {
   const draftKey = `gsg-draft-${checker.type}`;
+  const price = PRICES[checker.type];
 
+  const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -69,8 +79,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   const [essays, setEssays] = useState<EssayRow[]>([emptyEssay()]);
   const [supplementalInfo, setSupplementalInfo] = useState("");
 
-  // Which reviewer the student picked.
+  // Which counselor the student picked.
   const [selectedReviewerId, setSelectedReviewerId] = useState<string | null>(null);
+  const [selectedReviewerName, setSelectedReviewerName] = useState<string | null>(null);
 
   // Load an in-progress draft saved earlier in this browser.
   useEffect(() => {
@@ -96,7 +107,6 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
       if (cancelled) return;
 
-      // Draft is gone (deleted, or belongs to a session we no longer have).
       if (!submission) {
         localStorage.removeItem(draftKey);
         setLoading(false);
@@ -116,11 +126,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
           .select("role, organization, years, hours, description")
           .eq("submission_id", id)
           .order("position"),
-        supabase
-          .from("essays")
-          .select("title, body")
-          .eq("submission_id", id)
-          .order("position"),
+        supabase.from("essays").select("title, body").eq("submission_id", id).order("position"),
       ]);
 
       if (cancelled) return;
@@ -138,7 +144,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   // ---- Save / submit -------------------------------------------------------
 
-  async function persist(status: "draft" | "submitted") {
+  async function persist(status: "draft" | "submitted"): Promise<boolean> {
     setMessage(null);
 
     if (status === "submitted" && checker.requiresIntakeToSubmit) {
@@ -146,26 +152,20 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       if (!intendedMajor.trim() || !hasSchool) {
         setMessage({
           kind: "error",
-          text: "To submit, please add your intended major and at least one target school.",
+          text: "Please add your intended major and at least one target school.",
         });
-        return;
+        return false;
       }
     }
-
     if (status === "submitted" && !selectedReviewerId) {
-      setMessage({
-        kind: "error",
-        text: "Please choose a reviewer before submitting.",
-      });
-      return;
+      setMessage({ kind: "error", text: "Please choose a counselor first." });
+      return false;
     }
 
     setSaving(true);
     try {
       const supabase = createClient();
 
-      // Make sure we have a session. Anonymous is fine for now; in Phase 3 the
-      // student creates a real account and these drafts get linked to it.
       let {
         data: { user },
       } = await supabase.auth.getUser();
@@ -188,13 +188,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         ...(status === "submitted" ? { submitted_at: new Date().toISOString() } : {}),
       };
 
-      // Create the submission the first time, update it afterwards.
       let id = draftId;
       if (id) {
-        const { error } = await supabase
-          .from("submissions")
-          .update(submissionFields)
-          .eq("id", id);
+        const { error } = await supabase.from("submissions").update(submissionFields).eq("id", id);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
@@ -208,7 +204,6 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         localStorage.setItem(draftKey, id);
       }
 
-      // Replace the child rows with the current state (simple and correct).
       const schoolRows = schools
         .filter((s) => s.name.trim())
         .map((s) => ({ submission_id: id, name: s.name.trim(), tier: s.tier }));
@@ -250,6 +245,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       } else {
         setMessage({ kind: "ok", text: "Draft saved. You can close this and come back later." });
       }
+      return true;
     } catch (err) {
       const text =
         err instanceof Error && /anonymous/i.test(err.message)
@@ -258,8 +254,41 @@ export function CheckerForm({ checker }: { checker: Checker }) {
             ? err.message
             : "Something went wrong while saving.";
       setMessage({ kind: "error", text });
+      return false;
     } finally {
       setSaving(false);
+    }
+  }
+
+  // ---- Step navigation -----------------------------------------------------
+
+  async function goToCounselor() {
+    setMessage(null);
+    if (checker.requiresIntakeToSubmit) {
+      const hasSchool = schools.some((s) => s.name.trim());
+      if (!intendedMajor.trim() || !hasSchool) {
+        setMessage({
+          kind: "error",
+          text: "Add your intended major and at least one target school to continue.",
+        });
+        return;
+      }
+    }
+    if (await persist("draft")) {
+      setMessage(null);
+      setStep(2);
+    }
+  }
+
+  async function goToPayment() {
+    setMessage(null);
+    if (!selectedReviewerId) {
+      setMessage({ kind: "error", text: "Choose a counselor to continue." });
+      return;
+    }
+    if (await persist("draft")) {
+      setMessage(null);
+      setStep(3);
     }
   }
 
@@ -271,8 +300,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         <p className="font-medium">Saving isn&apos;t connected yet.</p>
         <p className="mt-1">
           Add your Supabase keys (see <code className="font-mono">docs/SETUP.md</code>) to enable
-          saving and submitting. The form below is the real layout — it just can&apos;t store
-          anything until then.
+          saving and submitting.
         </p>
       </div>
     );
@@ -283,9 +311,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
         <h2 className="text-lg font-semibold text-blue-900">Submitted — thank you!</h2>
         <p className="mt-2 text-sm text-blue-900">
-          Your work is in the queue and a reviewer will leave written feedback. Create an account to
-          track this submission and read your feedback when it&apos;s ready — what you just submitted
-          stays attached to it.
+          Your work is in the queue and your counselor will leave written feedback. Create an account
+          to track this submission and read your feedback when it&apos;s ready — what you just
+          submitted stays attached to it.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
@@ -309,244 +337,361 @@ export function CheckerForm({ checker }: { checker: Checker }) {
     return <p className="mt-8 text-sm text-zinc-500">Loading…</p>;
   }
 
-  // ---- The form ------------------------------------------------------------
+  // ---- Wizard --------------------------------------------------------------
 
   return (
-    <form
-      className="mt-8 space-y-10"
-      onSubmit={(e) => {
-        e.preventDefault();
-        persist("submitted");
-      }}
-    >
-      {/* Shared intake */}
-      <Section
-        title="About you"
-        subtitle="This helps reviewers tailor feedback to the schools you're aiming for."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Intended major">
-            <input
-              className={inputClass}
-              value={intendedMajor}
-              onChange={(e) => setIntendedMajor(e.target.value)}
-              placeholder="e.g. Computer Science"
-            />
-          </Field>
-          <Field label="GPA">
-            <input
-              className={inputClass}
-              value={gpa}
-              onChange={(e) => setGpa(e.target.value)}
-              placeholder="e.g. 3.9 (unweighted)"
-            />
-          </Field>
-        </div>
+    <div className="mt-8">
+      {/* Stepper */}
+      <ol className="flex items-center gap-2 sm:gap-3">
+        {STEP_LABELS.map((label, i) => {
+          const n = (i + 1) as Step;
+          const active = step === n;
+          const done = step > n;
+          return (
+            <li key={label} className="flex items-center gap-2 sm:gap-3">
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
+                  active
+                    ? "bg-blue-700 text-white"
+                    : done
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-zinc-100 text-zinc-400"
+                }`}
+              >
+                {done ? "✓" : n}
+              </span>
+              <span
+                className={`hidden text-sm sm:inline ${
+                  active ? "font-semibold text-zinc-900" : "text-zinc-400"
+                }`}
+              >
+                {label}
+              </span>
+              {n < 3 && <span className="h-px w-5 bg-zinc-200 sm:w-8" aria-hidden />}
+            </li>
+          );
+        })}
+      </ol>
 
-        <div className="mt-6">
-          <p className={labelClass}>Target schools</p>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            Tag each one Reach, Match, or Safety. Your dream schools go under Reach.
-          </p>
-          <div className="mt-3 space-y-2">
-            {schools.map((s, i) => (
-              <div key={i} className="flex gap-2">
-                <input
-                  className={inputClass}
-                  value={s.name}
-                  onChange={(e) => setSchools(update(schools, i, { name: e.target.value }))}
-                  placeholder="School name"
-                />
-                <select
-                  className={`${inputClass} w-32 shrink-0`}
-                  value={s.tier}
-                  onChange={(e) =>
-                    setSchools(update(schools, i, { tier: e.target.value as Tier }))
-                  }
-                >
-                  {TIERS.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
+      <div className="mt-8 space-y-10">
+        {/* STEP 1 — your work */}
+        {step === 1 && (
+          <>
+            <Section
+              title="About you"
+              subtitle="This helps your counselor tailor feedback to the schools you're aiming for."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Intended major">
+                  <input
+                    className={inputClass}
+                    value={intendedMajor}
+                    onChange={(e) => setIntendedMajor(e.target.value)}
+                    placeholder="e.g. Computer Science"
+                  />
+                </Field>
+                <Field label="GPA">
+                  <input
+                    className={inputClass}
+                    value={gpa}
+                    onChange={(e) => setGpa(e.target.value)}
+                    placeholder="e.g. 3.9 (unweighted)"
+                  />
+                </Field>
+              </div>
+
+              <div className="mt-6">
+                <p className={labelClass}>Target schools</p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Tag each one Reach, Match, or Safety. Your dream schools go under Reach.
+                </p>
+                <div className="mt-3 space-y-2">
+                  {schools.map((s, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className={inputClass}
+                        value={s.name}
+                        onChange={(e) => setSchools(update(schools, i, { name: e.target.value }))}
+                        placeholder="School name"
+                      />
+                      <select
+                        className={`${inputClass} w-32 shrink-0`}
+                        value={s.tier}
+                        onChange={(e) =>
+                          setSchools(update(schools, i, { tier: e.target.value as Tier }))
+                        }
+                      >
+                        {TIERS.map((t) => (
+                          <option key={t.value} value={t.value}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                      <RemoveButton
+                        disabled={schools.length === 1}
+                        onClick={() => setSchools(removeAt(schools, i))}
+                      />
+                    </div>
                   ))}
-                </select>
-                <RemoveButton
-                  disabled={schools.length === 1}
-                  onClick={() => setSchools(removeAt(schools, i))}
-                />
-              </div>
-            ))}
-          </div>
-          <AddButton label="Add school" onClick={() => setSchools([...schools, emptySchool()])} />
-        </div>
-      </Section>
-
-      {/* Activities — every checker has these */}
-      <Section
-        title="Activities"
-        subtitle={
-          checker.type === "ec"
-            ? "List your extracurriculars. This is what reviewers will assess."
-            : "List your extracurriculars, clubs, jobs, and roles."
-        }
-      >
-        <div className="space-y-4">
-          {activities.map((a, i) => (
-            <div key={i} className="rounded-xl border border-zinc-200 p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Role / position">
-                  <input
-                    className={inputClass}
-                    value={a.role}
-                    onChange={(e) => setActivities(update(activities, i, { role: e.target.value }))}
-                    placeholder="e.g. Team Captain"
-                  />
-                </Field>
-                <Field label="Organization">
-                  <input
-                    className={inputClass}
-                    value={a.organization}
-                    onChange={(e) =>
-                      setActivities(update(activities, i, { organization: e.target.value }))
-                    }
-                    placeholder="e.g. Varsity Soccer"
-                  />
-                </Field>
-                <Field label="Years involved">
-                  <input
-                    className={inputClass}
-                    value={a.years}
-                    onChange={(e) => setActivities(update(activities, i, { years: e.target.value }))}
-                    placeholder="e.g. 9, 10, 11, 12"
-                  />
-                </Field>
-                <Field label="Hours per week / weeks per year">
-                  <input
-                    className={inputClass}
-                    value={a.hours}
-                    onChange={(e) => setActivities(update(activities, i, { hours: e.target.value }))}
-                    placeholder="e.g. 10 hrs/wk, 30 wks/yr"
-                  />
-                </Field>
-              </div>
-              <Field label="Description" className="mt-3">
-                <textarea
-                  className={`${inputClass} min-h-20`}
-                  value={a.description}
-                  onChange={(e) =>
-                    setActivities(update(activities, i, { description: e.target.value }))
-                  }
-                  placeholder="What you did and the impact you had."
-                />
-              </Field>
-              <div className="mt-2 flex justify-end">
-                <RemoveButton
-                  disabled={activities.length === 1}
-                  onClick={() => setActivities(removeAt(activities, i))}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <AddButton
-          label="Add activity"
-          onClick={() => setActivities([...activities, emptyActivity()])}
-        />
-      </Section>
-
-      {/* Essays — finished + partial only */}
-      {checker.hasEssays && (
-        <Section title="Essays" subtitle="Add each essay with a short title and the full text.">
-          <div className="space-y-4">
-            {essays.map((e, i) => (
-              <div key={i} className="rounded-xl border border-zinc-200 p-4">
-                <Field label="Essay title">
-                  <input
-                    className={inputClass}
-                    value={e.title}
-                    onChange={(ev) => setEssays(update(essays, i, { title: ev.target.value }))}
-                    placeholder="e.g. Common App personal statement"
-                  />
-                </Field>
-                <Field label="Essay text" className="mt-3">
-                  <textarea
-                    className={`${inputClass} min-h-40`}
-                    value={e.body}
-                    onChange={(ev) => setEssays(update(essays, i, { body: ev.target.value }))}
-                    placeholder="Paste your essay here."
-                  />
-                </Field>
-                <div className="mt-2 flex justify-end">
-                  <RemoveButton
-                    disabled={essays.length === 1}
-                    onClick={() => setEssays(removeAt(essays, i))}
-                  />
                 </div>
+                <AddButton
+                  label="Add school"
+                  onClick={() => setSchools([...schools, emptySchool()])}
+                />
               </div>
-            ))}
-          </div>
-          <AddButton label="Add essay" onClick={() => setEssays([...essays, emptyEssay()])} />
-        </Section>
-      )}
+            </Section>
 
-      {/* Supplemental — finished + partial only */}
-      {checker.hasSupplemental && (
-        <Section
-          title="Anything else?"
-          subtitle="Optional. Context, questions for your reviewer, or anything that doesn't fit above."
-        >
-          <textarea
-            className={`${inputClass} min-h-28`}
-            value={supplementalInfo}
-            onChange={(e) => setSupplementalInfo(e.target.value)}
-            placeholder="Optional notes for your reviewer."
-          />
-        </Section>
-      )}
+            <Section
+              title="Activities"
+              subtitle={
+                checker.type === "ec"
+                  ? "List your extracurriculars. This is what your counselor will assess."
+                  : "List your extracurriculars, clubs, jobs, and roles."
+              }
+            >
+              <div className="space-y-4">
+                {activities.map((a, i) => (
+                  <div key={i} className="rounded-xl border border-zinc-200 p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field label="Role / position">
+                        <input
+                          className={inputClass}
+                          value={a.role}
+                          onChange={(e) =>
+                            setActivities(update(activities, i, { role: e.target.value }))
+                          }
+                          placeholder="e.g. Team Captain"
+                        />
+                      </Field>
+                      <Field label="Organization">
+                        <input
+                          className={inputClass}
+                          value={a.organization}
+                          onChange={(e) =>
+                            setActivities(update(activities, i, { organization: e.target.value }))
+                          }
+                          placeholder="e.g. Varsity Soccer"
+                        />
+                      </Field>
+                      <Field label="Years involved">
+                        <input
+                          className={inputClass}
+                          value={a.years}
+                          onChange={(e) =>
+                            setActivities(update(activities, i, { years: e.target.value }))
+                          }
+                          placeholder="e.g. 9, 10, 11, 12"
+                        />
+                      </Field>
+                      <Field label="Hours per week / weeks per year">
+                        <input
+                          className={inputClass}
+                          value={a.hours}
+                          onChange={(e) =>
+                            setActivities(update(activities, i, { hours: e.target.value }))
+                          }
+                          placeholder="e.g. 10 hrs/wk, 30 wks/yr"
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Description" className="mt-3">
+                      <textarea
+                        className={`${inputClass} min-h-20`}
+                        value={a.description}
+                        onChange={(e) =>
+                          setActivities(update(activities, i, { description: e.target.value }))
+                        }
+                        placeholder="What you did and the impact you had."
+                      />
+                    </Field>
+                    <div className="mt-2 flex justify-end">
+                      <RemoveButton
+                        disabled={activities.length === 1}
+                        onClick={() => setActivities(removeAt(activities, i))}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <AddButton
+                label="Add activity"
+                onClick={() => setActivities([...activities, emptyActivity()])}
+              />
+            </Section>
 
-      {/* Choose your reviewer */}
-      <Section
-        title="Choose your reviewer"
-        subtitle="Pick who reviews your application. Turn-around times reflect how busy each reviewer is right now."
-      >
-        <ReviewerPicker selectedId={selectedReviewerId} onSelect={setSelectedReviewerId} />
-      </Section>
+            {checker.hasEssays && (
+              <Section title="Essays" subtitle="Add each essay with a short title and the full text.">
+                <div className="space-y-4">
+                  {essays.map((e, i) => (
+                    <div key={i} className="rounded-xl border border-zinc-200 p-4">
+                      <Field label="Essay title">
+                        <input
+                          className={inputClass}
+                          value={e.title}
+                          onChange={(ev) => setEssays(update(essays, i, { title: ev.target.value }))}
+                          placeholder="e.g. Common App personal statement"
+                        />
+                      </Field>
+                      <Field label="Essay text" className="mt-3">
+                        <textarea
+                          className={`${inputClass} min-h-40`}
+                          value={e.body}
+                          onChange={(ev) => setEssays(update(essays, i, { body: ev.target.value }))}
+                          placeholder="Paste your essay here."
+                        />
+                      </Field>
+                      <div className="mt-2 flex justify-end">
+                        <RemoveButton
+                          disabled={essays.length === 1}
+                          onClick={() => setEssays(removeAt(essays, i))}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <AddButton label="Add essay" onClick={() => setEssays([...essays, emptyEssay()])} />
+              </Section>
+            )}
+
+            {checker.hasSupplemental && (
+              <Section
+                title="Anything else?"
+                subtitle="Optional. Context, questions for your counselor, or anything that doesn't fit above."
+              >
+                <textarea
+                  className={`${inputClass} min-h-28`}
+                  value={supplementalInfo}
+                  onChange={(e) => setSupplementalInfo(e.target.value)}
+                  placeholder="Optional notes for your counselor."
+                />
+              </Section>
+            )}
+          </>
+        )}
+
+        {/* STEP 2 — pick a counselor */}
+        {step === 2 && (
+          <Section
+            title="Choose your counselor"
+            subtitle="Pick who reviews your application. Turn-around times reflect how busy each counselor is right now."
+          >
+            <ReviewerPicker
+              selectedId={selectedReviewerId}
+              onSelect={(id, name) => {
+                setSelectedReviewerId(id);
+                setSelectedReviewerName(name);
+              }}
+            />
+          </Section>
+        )}
+
+        {/* STEP 3 — payment */}
+        {step === 3 && (
+          <Section title="Payment" subtitle="Review your order and submit for review.">
+            <div className="rounded-xl border border-zinc-200 bg-white p-5">
+              <dl className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Service</dt>
+                  <dd className="font-medium text-zinc-900">{price.label}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Counselor</dt>
+                  <dd className="font-medium text-zinc-900">
+                    {selectedReviewerName ?? "Selected counselor"}
+                  </dd>
+                </div>
+                {intendedMajor.trim() && (
+                  <div className="flex justify-between">
+                    <dt className="text-zinc-500">Intended major</dt>
+                    <dd className="text-zinc-900">{intendedMajor}</dd>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-zinc-100 pt-3 text-base">
+                  <dt className="font-semibold text-zinc-900">Total</dt>
+                  <dd className="font-semibold text-zinc-900">{formatUsd(price.amount)}</dd>
+                </div>
+              </dl>
+            </div>
+            <p className="mt-3 text-xs text-zinc-500">
+              Secure card payment is being connected. For now this completes and submits your
+              application for review — you won&apos;t be charged.
+            </p>
+          </Section>
+        )}
+      </div>
 
       {message && (
         <p
-          className={`rounded-lg px-4 py-3 text-sm ${
-            message.kind === "ok"
-              ? "bg-green-50 text-green-800"
-              : "bg-red-50 text-red-700"
+          className={`mt-8 rounded-lg px-4 py-3 text-sm ${
+            message.kind === "ok" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"
           }`}
         >
           {message.text}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-zinc-200 pt-6">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
-        >
-          {saving ? "Working…" : "Submit for review"}
-        </button>
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => persist("draft")}
-          className="rounded-lg border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
-        >
-          Save draft
-        </button>
-        <span className="text-xs text-zinc-500">
-          {checker.requiresIntakeToSubmit
-            ? "Major, one school, and a reviewer are needed to submit."
-            : "Nothing is required to save a draft. Choose a reviewer to submit."}
-        </span>
+      {/* Navigation */}
+      <div className="mt-8 flex items-center justify-between gap-3 border-t border-zinc-200 pt-6">
+        <div>
+          {step > 1 && (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                setMessage(null);
+                setStep((step - 1) as Step);
+              }}
+              className={secondaryBtn}
+            >
+              Back
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {step === 1 && (
+            <>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => persist("draft")}
+                className={secondaryBtn}
+              >
+                Save draft
+              </button>
+              <button type="button" disabled={saving} onClick={goToCounselor} className={primaryBtn}>
+                {saving ? "Saving…" : "Continue to counselor →"}
+              </button>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => persist("draft")}
+                className={secondaryBtn}
+              >
+                Save draft
+              </button>
+              <button type="button" disabled={saving} onClick={goToPayment} className={primaryBtn}>
+                {saving ? "Saving…" : "Continue to payment →"}
+              </button>
+            </>
+          )}
+          {step === 3 && (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => persist("submitted")}
+              className={primaryBtn}
+            >
+              {saving ? "Working…" : `Pay ${formatUsd(price.amount)} & submit`}
+            </button>
+          )}
+        </div>
       </div>
-    </form>
+    </div>
   );
 }
 
