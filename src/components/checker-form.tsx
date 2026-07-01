@@ -431,6 +431,17 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         {step === 1 && (
           <>
             <Section
+              title="Upload files (optional)"
+              subtitle="Drag in your Common App, essays, or any PDFs. Give each one a title so your counselor knows what it is."
+            >
+              <FileUploads
+                attachments={attachments}
+                onChange={setAttachments}
+                ensureSubmission={ensureSubmission}
+              />
+            </Section>
+
+            <Section
               title="About you"
               subtitle="This helps your counselor tailor feedback to the schools you're aiming for."
             >
@@ -621,17 +632,6 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 />
               </Section>
             )}
-
-            <Section
-              title="Upload files (optional)"
-              subtitle="Drag in your Common App, essays, or any PDFs. Give each one a title so your counselor knows what it is."
-            >
-              <FileUploads
-                attachments={attachments}
-                onChange={setAttachments}
-                ensureSubmission={ensureSubmission}
-              />
-            </Section>
           </>
         )}
 
