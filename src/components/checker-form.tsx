@@ -292,6 +292,41 @@ export function CheckerForm({ checker }: { checker: Checker }) {
     }
   }
 
+  async function payAndSubmit() {
+    setMessage(null);
+    // Make sure the submission exists and is saved before checkout.
+    if (!(await persist("draft"))) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: draftId }),
+      });
+      const data = await res.json();
+
+      if (data.url) {
+        // Off to Stripe's secure checkout. Keep the button busy during redirect.
+        window.location.assign(data.url);
+        return;
+      }
+      if (data.configured === false) {
+        // Stripe isn't set up yet — complete without a charge for now.
+        setSaving(false);
+        await persist("submitted");
+        return;
+      }
+      throw new Error(data.error || "Could not start checkout.");
+    } catch (err) {
+      setMessage({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Could not start checkout.",
+      });
+      setSaving(false);
+    }
+  }
+
   // ---- Not-configured + success states ------------------------------------
 
   if (!isSupabaseConfigured) {
@@ -613,8 +648,8 @@ export function CheckerForm({ checker }: { checker: Checker }) {
               </dl>
             </div>
             <p className="mt-3 text-xs text-zinc-500">
-              Secure card payment is being connected. For now this completes and submits your
-              application for review — you won&apos;t be charged.
+              You&apos;ll be taken to Stripe&apos;s secure checkout to pay. Your application is
+              submitted for review as soon as payment succeeds.
             </p>
           </Section>
         )}
@@ -683,7 +718,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
             <button
               type="button"
               disabled={saving}
-              onClick={() => persist("submitted")}
+              onClick={payAndSubmit}
               className={primaryBtn}
             >
               {saving ? "Working…" : `Pay ${formatUsd(price.amount)} & submit`}

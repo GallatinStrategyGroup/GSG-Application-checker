@@ -75,6 +75,23 @@ Once a person's role is `reviewer`, they log in at `/login` like anyone else and
 are taken to the **Review queue** at `/reviewer`, where they can open
 submissions, assign them, and write feedback.
 
+## Payments (Stripe)
+The EC Check ($63.99) and Application Check ($189.99) are paid via Stripe on the
+last step of the wizard. To turn payments on:
+1. In Stripe → **Developers → API keys**, copy your **Secret key** (`sk_live_…`
+   for real charges, or `sk_test_…` to test with fake cards first).
+2. Add it in **Vercel → Settings → Environment Variables** as `STRIPE_SECRET_KEY`
+   (and in your local `.env.local` if testing locally), then **Redeploy**.
+3. That's it — the pay button will redirect to Stripe's secure checkout, and on
+   success the submission is marked submitted automatically.
+
+Until `STRIPE_SECRET_KEY` is set, the pay button just completes the submission
+without charging (so the flow still works while you set Stripe up).
+
+> Security: `STRIPE_SECRET_KEY` is powerful — keep it server-side only (never
+> `NEXT_PUBLIC_`), and if a secret key ever gets pasted into a chat, email, or
+> log, roll it in Stripe (Developers → API keys → Roll).
+
 ## Reviewers students can choose from
 Students pick a reviewer at the end of a checker. Those reviewer cards come from
 the `reviewers` table (separate from logins, so we can show sample people now and
