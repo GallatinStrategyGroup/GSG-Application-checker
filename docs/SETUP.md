@@ -88,6 +88,18 @@ last step of the wizard. To turn payments on:
 Until `STRIPE_SECRET_KEY` is set, the pay button just completes the submission
 without charging (so the flow still works while you set Stripe up).
 
+### Webhook (reliable payment confirmation)
+The redirect back from Stripe marks the submission paid, but a webhook makes it
+bulletproof (it still works if the customer closes the tab). To enable it:
+1. Add `SUPABASE_SERVICE_ROLE_KEY` in Vercel (from Supabase → Project Settings →
+   API → `service_role` key). The webhook uses it to update the submission since
+   it runs without a logged-in user.
+2. In Stripe → **Developers → Webhooks → Add endpoint**:
+   - Endpoint URL: `https://YOUR-SITE.vercel.app/api/stripe/webhook`
+   - Event to send: **`checkout.session.completed`**
+3. Stripe shows a **Signing secret** (`whsec_…`). Add it in Vercel as
+   `STRIPE_WEBHOOK_SECRET`, then **Redeploy**.
+
 > Security: `STRIPE_SECRET_KEY` is powerful — keep it server-side only (never
 > `NEXT_PUBLIC_`), and if a secret key ever gets pasted into a chat, email, or
 > log, roll it in Stripe (Developers → API keys → Roll).
