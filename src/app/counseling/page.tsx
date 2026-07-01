@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Avatar } from "@/components/avatar";
+import { CounselorCard } from "@/components/counselor-card";
+import { getCounselorCv } from "@/lib/counselors";
 
 export const metadata = { title: "1-on-1 Counseling" };
 
@@ -82,33 +83,15 @@ export default async function CounselingPage() {
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               {counselors.map((c) => (
-                <article
+                <CounselorCard
                   key={c.id}
-                  className="flex flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar name={c.name} url={c.avatar_url} size={64} />
-                    <div className="min-w-0">
-                      <h3 className="text-lg font-semibold text-zinc-900">{c.name}</h3>
-                      {c.headline && <p className="text-sm text-blue-700">{c.headline}</p>}
-                    </div>
-                  </div>
-                  {c.bio && <p className="mt-4 flex-1 text-sm leading-relaxed text-zinc-600">{c.bio}</p>}
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <Link
-                      href={`/counseling/${c.id}`}
-                      className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-                    >
-                      Book a free intro call
-                    </Link>
-                    <Link
-                      href={`/counseling/${c.id}`}
-                      className="text-sm font-semibold text-blue-700 hover:underline"
-                    >
-                      View profile
-                    </Link>
-                  </div>
-                </article>
+                  id={c.id}
+                  name={c.name}
+                  headline={c.headline}
+                  bio={c.bio}
+                  avatarUrl={c.avatar_url}
+                  cv={getCounselorCv(c.name)}
+                />
               ))}
             </div>
           )}
