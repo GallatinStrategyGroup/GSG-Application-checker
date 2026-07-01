@@ -15,6 +15,7 @@ export interface CounselorPhoto {
 export const COUNSELOR_PHOTOS: Record<string, CounselorPhoto> = {
   "Dr. Benjamin Bolger": { src: "/counselors/benjamin-bolger.webp", position: "28% 26%" },
   "Dr. Arman Davtyan": { src: "/counselors/arman-davtyan.webp", position: "50% 16%" },
+  "Karly Burke": { src: "/counselors/karly-burke.webp", position: "55% 34%" },
 };
 
 export function getCounselorPhoto(name: string): CounselorPhoto | null {

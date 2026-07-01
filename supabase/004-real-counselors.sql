@@ -15,10 +15,10 @@ insert into public.reviewers (name, headline, bio, avatar_url, display_order) va
    'Founder of The Admissions Desk and Assistant Dean of Enrollment Management at Pepperdine''s Graziadio Business School, with over two decades reading applications and leading admissions at the university level. Blends insider admissions knowledge with compassionate, individualized advising.',
    '/counselors/arman-davtyan.webp', 2),
 
-  ('Dr. Daniel Sullivan', 'Harvard-trained admissions strategist',
-   'Senior consultant at Bolger Strategic since 2011 and a Harvard teaching fellow. Builds highly customized admissions strategies using Howard Gardner''s Theory of Multiple Intelligences, with deep expertise in college essay editing and narrative storytelling.',
-   null, 3),
-
   ('Karly Burke', 'Educator & curriculum specialist',
    'An influential educator with dual Bachelor''s and Master''s degrees. At Newton North High School she enhanced curricula and mentored incoming teachers, and she remains a leader in modern educational methodology focused on student success.',
+   '/counselors/karly-burke.webp', 3),
+
+  ('Dr. Daniel Sullivan', 'Harvard-trained admissions strategist',
+   'Senior consultant at Bolger Strategic since 2011 and a Harvard teaching fellow. Builds highly customized admissions strategies using Howard Gardner''s Theory of Multiple Intelligences, with deep expertise in college essay editing and narrative storytelling.',
    null, 4);
