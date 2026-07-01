@@ -51,7 +51,7 @@ export default async function SubmissionDetailPage({
     reviewerName = reviewer?.name ?? null;
   }
 
-  const [{ data: schools }, { data: activities }, { data: essays }, { data: feedback }] =
+  const [{ data: schools }, { data: activities }, { data: essays }, { data: feedback }, { data: atts }] =
     await Promise.all([
       supabase.from("target_schools").select("name, tier").eq("submission_id", id),
       supabase
@@ -65,7 +65,21 @@ export default async function SubmissionDetailPage({
         .select("body, updated_at")
         .eq("submission_id", id)
         .maybeSingle<{ body: string | null; updated_at: string }>(),
+      supabase
+        .from("attachments")
+        .select("title, file_name, file_path")
+        .eq("submission_id", id)
+        .order("created_at"),
     ]);
+
+  const files = await Promise.all(
+    (atts ?? []).map(async (a) => {
+      const { data: signed } = await supabase.storage
+        .from("uploads")
+        .createSignedUrl(a.file_path, 3600);
+      return { title: a.title, file_name: a.file_name, url: signed?.signedUrl ?? null };
+    }),
+  );
 
   const checker = getChecker(submission.type);
 
@@ -113,6 +127,7 @@ export default async function SubmissionDetailPage({
               schools={(schools ?? []) as SchoolView[]}
               activities={(activities ?? []) as ActivityView[]}
               essays={(essays ?? []) as EssayView[]}
+              files={files}
             />
           </div>
         </div>

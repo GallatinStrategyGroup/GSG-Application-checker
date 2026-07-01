@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ReviewerPicker } from "@/components/reviewer-picker";
+import { FileUploads } from "@/components/file-uploads";
 import { PRICES, formatUsd } from "@/lib/pricing";
+import type { Attachment } from "@/lib/attachments";
 import type { Checker } from "@/lib/checkers";
 
 // ---- Shapes of the editable rows -------------------------------------------
@@ -83,6 +85,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   const [selectedReviewerId, setSelectedReviewerId] = useState<string | null>(null);
   const [selectedReviewerName, setSelectedReviewerName] = useState<string | null>(null);
 
+  // Uploaded files.
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+
   // Load an in-progress draft saved earlier in this browser.
   useEffect(() => {
     let cancelled = false;
@@ -119,7 +124,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       setSupplementalInfo(submission.supplemental_info ?? "");
       setSelectedReviewerId(submission.assigned_reviewer_id ?? null);
 
-      const [{ data: sc }, { data: ac }, { data: es }] = await Promise.all([
+      const [{ data: sc }, { data: ac }, { data: es }, { data: at }] = await Promise.all([
         supabase.from("target_schools").select("name, tier").eq("submission_id", id),
         supabase
           .from("activities")
@@ -127,12 +132,18 @@ export function CheckerForm({ checker }: { checker: Checker }) {
           .eq("submission_id", id)
           .order("position"),
         supabase.from("essays").select("title, body").eq("submission_id", id).order("position"),
+        supabase
+          .from("attachments")
+          .select("id, title, file_name, file_path")
+          .eq("submission_id", id)
+          .order("created_at"),
       ]);
 
       if (cancelled) return;
       if (sc && sc.length) setSchools(sc as SchoolRow[]);
       if (ac && ac.length) setActivities(ac as ActivityRow[]);
       if (es && es.length) setEssays(es as EssayRow[]);
+      if (at && at.length) setAttachments(at as Attachment[]);
       setLoading(false);
     }
 
@@ -144,7 +155,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   // ---- Save / submit -------------------------------------------------------
 
-  async function persist(status: "draft" | "submitted"): Promise<boolean> {
+  async function persist(status: "draft" | "submitted"): Promise<string | null> {
     setMessage(null);
 
     if (status === "submitted" && checker.requiresIntakeToSubmit) {
@@ -154,12 +165,12 @@ export function CheckerForm({ checker }: { checker: Checker }) {
           kind: "error",
           text: "Please add your intended major and at least one target school.",
         });
-        return false;
+        return null;
       }
     }
     if (status === "submitted" && !selectedReviewerId) {
       setMessage({ kind: "error", text: "Please choose a counselor first." });
-      return false;
+      return null;
     }
 
     setSaving(true);
@@ -245,7 +256,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
       } else {
         setMessage({ kind: "ok", text: "Draft saved. You can close this and come back later." });
       }
-      return true;
+      return id;
     } catch (err) {
       const text =
         err instanceof Error && /anonymous/i.test(err.message)
@@ -254,10 +265,16 @@ export function CheckerForm({ checker }: { checker: Checker }) {
             ? err.message
             : "Something went wrong while saving.";
       setMessage({ kind: "error", text });
-      return false;
+      return null;
     } finally {
       setSaving(false);
     }
+  }
+
+  // Uploads need a submission to attach to — create the draft if there isn't one.
+  async function ensureSubmission(): Promise<string | null> {
+    if (draftId) return draftId;
+    return persist("draft");
   }
 
   // ---- Step navigation -----------------------------------------------------
@@ -601,6 +618,17 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 />
               </Section>
             )}
+
+            <Section
+              title="Upload files (optional)"
+              subtitle="Drag in your Common App, essays, or any PDFs. Give each one a title so your counselor knows what it is."
+            >
+              <FileUploads
+                attachments={attachments}
+                onChange={setAttachments}
+                ensureSubmission={ensureSubmission}
+              />
+            </Section>
           </>
         )}
 

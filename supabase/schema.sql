@@ -269,6 +269,49 @@ create policy "feedback_update" on public.feedback
 
 
 -- =============================================================
+-- UPLOADS — private storage bucket + attachments table.
+-- (Also available as the standalone migration supabase/002-uploads.sql.)
+-- =============================================================
+insert into storage.buckets (id, name, public)
+values ('uploads', 'uploads', false)
+on conflict (id) do nothing;
+
+create table if not exists public.attachments (
+  id            uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references public.submissions (id) on delete cascade,
+  title         text,
+  file_path     text not null,
+  file_name     text,
+  created_at    timestamptz not null default now()
+);
+
+alter table public.attachments enable row level security;
+
+create policy "attachments_select" on public.attachments
+  for select using (public.owns_submission(submission_id) or public.is_reviewer());
+create policy "attachments_write" on public.attachments
+  for all using (public.owns_submission(submission_id))
+  with check (public.owns_submission(submission_id));
+
+create policy "uploads_insert" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'uploads' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+create policy "uploads_select" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'uploads'
+    and ((storage.foldername(name))[1] = auth.uid()::text or public.is_reviewer())
+  );
+create policy "uploads_delete" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'uploads' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+
+-- =============================================================
 -- SAMPLE REVIEWERS (placeholders)
 -- These let the "Choose your reviewer" screen look populated right away.
 -- They have no login (profile_id is null) and no photo (initials show).

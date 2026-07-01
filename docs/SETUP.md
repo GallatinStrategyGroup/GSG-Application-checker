@@ -75,6 +75,13 @@ Once a person's role is `reviewer`, they log in at `/login` like anyone else and
 are taken to the **Review queue** at `/reviewer`, where they can open
 submissions, assign them, and write feedback.
 
+## File uploads
+Students can drag-and-drop files (Common App PDF, essays, etc.) on the first step
+of a checker. To enable it, run **`supabase/002-uploads.sql`** once in the Supabase
+SQL Editor (same paste-and-Run flow as the main schema). It adds a private
+`uploads` storage bucket and an `attachments` table with the right access rules
+(students see only their own files; reviewers can read everything).
+
 ## Payments (Stripe)
 The EC Check ($63.99) and Application Check ($189.99) are paid via Stripe on the
 last step of the wizard. To turn payments on:

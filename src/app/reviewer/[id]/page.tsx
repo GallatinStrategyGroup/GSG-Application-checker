@@ -71,6 +71,21 @@ export default async function ReviewerSubmissionPage({
         .maybeSingle<{ id: string }>(),
     ]);
 
+  const { data: atts } = await supabase
+    .from("attachments")
+    .select("title, file_name, file_path")
+    .eq("submission_id", id)
+    .order("created_at");
+
+  const files = await Promise.all(
+    (atts ?? []).map(async (a) => {
+      const { data: signed } = await supabase.storage
+        .from("uploads")
+        .createSignedUrl(a.file_path, 3600);
+      return { title: a.title, file_name: a.file_name, url: signed?.signedUrl ?? null };
+    }),
+  );
+
   const checker = getChecker(submission.type);
   const studentName = student?.full_name || student?.email || "Student";
   const reviewers = (reviewerRows ?? []).map((r) => ({
@@ -118,6 +133,7 @@ export default async function ReviewerSubmissionPage({
               schools={(schools ?? []) as SchoolView[]}
               activities={(activities ?? []) as ActivityView[]}
               essays={(essays ?? []) as EssayView[]}
+              files={files}
             />
           </div>
         </div>

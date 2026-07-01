@@ -15,6 +15,11 @@ export interface EssayView {
   title: string | null;
   body: string | null;
 }
+export interface FileView {
+  title: string | null;
+  file_name: string | null;
+  url: string | null;
+}
 
 // Read-only view of everything a student entered. Shared by the student's own
 // submission page and the reviewer's submission page.
@@ -23,11 +28,13 @@ export function SubmissionDetail({
   schools,
   activities,
   essays,
+  files = [],
 }: {
   submission: SubmissionRow;
   schools: SchoolView[];
   activities: ActivityView[];
   essays: EssayView[];
+  files?: FileView[];
 }) {
   return (
     <section className="space-y-6">
@@ -75,6 +82,30 @@ export function SubmissionDetail({
               </div>
             ))}
           </div>
+        </DetailBlock>
+      )}
+
+      {files.length > 0 && (
+        <DetailBlock title="Files">
+          <ul className="space-y-2 text-sm">
+            {files.map((f, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-zinc-900">{f.title || f.file_name || "File"}</span>
+                {f.url ? (
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 hover:underline"
+                  >
+                    Download{f.file_name ? ` (${f.file_name})` : ""}
+                  </a>
+                ) : (
+                  <span className="text-zinc-400">{f.file_name}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </DetailBlock>
       )}
 
