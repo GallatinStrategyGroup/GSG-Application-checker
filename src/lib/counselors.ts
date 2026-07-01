@@ -63,6 +63,20 @@ export const COUNSELOR_CVS: Record<string, CvSection[]> = {
     },
   ],
 
+  "Karly Burke": [
+    {
+      heading: "Education",
+      items: ["Dual Bachelor's and Master's degrees"],
+    },
+    {
+      heading: "Experience",
+      items: [
+        "Educator at Newton North High School — curriculum development and mentoring new teachers",
+        "A leader in modern educational methodology focused on student success",
+      ],
+    },
+  ],
+
   "Dr. Daniel Sullivan": [
     {
       heading: "Experience",
