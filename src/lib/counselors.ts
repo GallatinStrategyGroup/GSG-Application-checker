@@ -1,12 +1,68 @@
-// Rich counselor CVs, laid out as bullet-point sections for the expandable card.
-// Keyed by the EXACT `reviewers.name` so we can match a DB counselor to their CV.
+// Rich counselor data: photos (with face-framing) and bullet-point CVs.
+// Keyed by the EXACT `reviewers.name` so we can match a DB counselor.
 
 export interface CvSection {
   heading: string;
   items: string[];
 }
 
+export interface CounselorPhoto {
+  src: string;
+  // object-position to keep the face nicely framed in the round avatar crop.
+  position?: string;
+}
+
+export const COUNSELOR_PHOTOS: Record<string, CounselorPhoto> = {
+  "Dr. Benjamin Bolger": { src: "/counselors/benjamin-bolger.webp", position: "28% 26%" },
+  "Dr. Arman Davtyan": { src: "/counselors/arman-davtyan.webp", position: "50% 16%" },
+};
+
+export function getCounselorPhoto(name: string): CounselorPhoto | null {
+  return COUNSELOR_PHOTOS[name] ?? null;
+}
+
 export const COUNSELOR_CVS: Record<string, CvSection[]> = {
+  "Dr. Benjamin Bolger": [
+    {
+      heading: "Education",
+      items: [
+        "Doctorate — Harvard University",
+        "More than a dozen graduate degrees from institutions including Stanford and Columbia",
+        "B.A. with highest honors — University of Michigan",
+      ],
+    },
+    {
+      heading: "Experience",
+      items: [
+        "Founder, Bolger Strategic — 20+ years of college admissions consulting",
+        "Has guided students into many of the most selective colleges in the world",
+        "Previously worked at the White House",
+      ],
+    },
+    {
+      heading: "Honors",
+      items: ["Multiple-time recipient of Harvard's Derek Bok teaching award"],
+    },
+  ],
+
+  "Dr. Arman Davtyan": [
+    {
+      heading: "Experience",
+      items: [
+        "Founder, The Admissions Desk",
+        "Over two decades of experience in higher education",
+        "Served on admission committees at selective institutions",
+      ],
+    },
+    {
+      heading: "Approach",
+      items: [
+        "Personalized, one-on-one advising focused on clarity, structure, and self-discovery",
+        "Helps each student present their narrative authentically",
+      ],
+    },
+  ],
+
   "Dr. Daniel Sullivan": [
     {
       heading: "Experience",

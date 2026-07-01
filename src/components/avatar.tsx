@@ -1,6 +1,16 @@
 // A round avatar. Shows the photo if we have one, otherwise the person's
 // initials on a soft blue circle (used for the sample reviewers).
-export function Avatar({ name, url, size = 48 }: { name: string; url: string | null; size?: number }) {
+export function Avatar({
+  name,
+  url,
+  size = 48,
+  objectPosition = "center",
+}: {
+  name: string;
+  url: string | null;
+  size?: number;
+  objectPosition?: string;
+}) {
   if (url) {
     return (
       // Plain <img>: reviewer photos can come from anywhere, so we skip
@@ -12,7 +22,7 @@ export function Avatar({ name, url, size = 48 }: { name: string; url: string | n
         width={size}
         height={size}
         className="rounded-full object-cover"
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, objectPosition }}
       />
     );
   }

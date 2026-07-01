@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounselorCard } from "@/components/counselor-card";
-import { getCounselorCv } from "@/lib/counselors";
+import { getCounselorCv, getCounselorPhoto } from "@/lib/counselors";
 
 export const metadata = { title: "1-on-1 Counseling" };
 
@@ -82,17 +82,21 @@ export default async function CounselingPage() {
             </p>
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              {counselors.map((c) => (
-                <CounselorCard
-                  key={c.id}
-                  id={c.id}
-                  name={c.name}
-                  headline={c.headline}
-                  bio={c.bio}
-                  avatarUrl={c.avatar_url}
-                  cv={getCounselorCv(c.name)}
-                />
-              ))}
+              {counselors.map((c) => {
+                const photo = getCounselorPhoto(c.name);
+                return (
+                  <CounselorCard
+                    key={c.id}
+                    id={c.id}
+                    name={c.name}
+                    headline={c.headline}
+                    bio={c.bio}
+                    avatarUrl={photo?.src ?? c.avatar_url}
+                    avatarPosition={photo?.position}
+                    cv={getCounselorCv(c.name)}
+                  />
+                );
+              })}
             </div>
           )}
         </section>

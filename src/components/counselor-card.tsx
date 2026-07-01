@@ -11,6 +11,7 @@ export function CounselorCard({
   headline,
   bio,
   avatarUrl,
+  avatarPosition,
   cv,
 }: {
   id: string;
@@ -18,6 +19,7 @@ export function CounselorCard({
   headline: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  avatarPosition?: string;
   cv: CvSection[] | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -26,7 +28,7 @@ export function CounselorCard({
   return (
     <article className="flex flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-center gap-4">
-        <Avatar name={name} url={avatarUrl} size={64} />
+        <Avatar name={name} url={avatarUrl} size={72} objectPosition={avatarPosition} />
         <div className="min-w-0">
           <h3 className="font-serif text-xl font-medium text-zinc-900">{name}</h3>
           {headline && <p className="text-sm text-blue-700">{headline}</p>}
