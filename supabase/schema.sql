@@ -312,6 +312,29 @@ create policy "uploads_delete" on storage.objects
 
 
 -- =============================================================
+-- INTRO CALLS — "book a free intro call" requests from the counseling pages.
+-- (Also available as the standalone migration supabase/003-intro-calls.sql.)
+-- =============================================================
+create table if not exists public.intro_call_requests (
+  id              uuid primary key default gen_random_uuid(),
+  reviewer_id     uuid references public.reviewers (id) on delete set null,
+  student_name    text,
+  email           text,
+  phone           text,
+  preferred_times text,
+  message         text,
+  created_at      timestamptz not null default now()
+);
+
+alter table public.intro_call_requests enable row level security;
+
+create policy "intro_calls_insert" on public.intro_call_requests
+  for insert with check (true);
+create policy "intro_calls_select" on public.intro_call_requests
+  for select using (public.is_reviewer());
+
+
+-- =============================================================
 -- SAMPLE REVIEWERS (placeholders)
 -- These let the "Choose your reviewer" screen look populated right away.
 -- They have no login (profile_id is null) and no photo (initials show).

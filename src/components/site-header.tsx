@@ -45,6 +45,12 @@ export async function SiteHeader() {
               >
                 Review queue
               </Link>
+              <Link
+                href="/reviewer/intro-calls"
+                className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+              >
+                Intro calls
+              </Link>
               <LogoutButton />
             </>
           )}

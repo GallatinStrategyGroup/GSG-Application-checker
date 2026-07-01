@@ -82,6 +82,13 @@ SQL Editor (same paste-and-Run flow as the main schema). It adds a private
 `uploads` storage bucket and an `attachments` table with the right access rules
 (students see only their own files; reviewers can read everything).
 
+## Counseling intro calls
+The counseling pages let visitors request a free intro call with a counselor. To
+enable it, run **`supabase/003-intro-calls.sql`** once in the Supabase SQL Editor.
+It adds an `intro_call_requests` table (anyone can submit; only reviewers can
+read). Reviewers see the requests at `/reviewer/intro-calls` ("Intro calls" in
+the header).
+
 ## Payments (Stripe)
 The EC Check ($63.99) and Application Check ($189.99) are paid via Stripe on the
 last step of the wizard. To turn payments on:

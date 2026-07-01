@@ -88,21 +88,25 @@ export default async function CounselingPage() {
                       {c.headline && <p className="text-sm text-blue-700">{c.headline}</p>}
                     </div>
                   </div>
-                  {c.bio && <p className="mt-4 text-sm leading-relaxed text-zinc-600">{c.bio}</p>}
-                  <div className="mt-6 flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                      Free intro call
-                    </span>
+                  {c.bio && <p className="mt-4 flex-1 text-sm leading-relaxed text-zinc-600">{c.bio}</p>}
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <Link
+                      href={`/counseling/${c.id}`}
+                      className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+                    >
+                      Book a free intro call
+                    </Link>
+                    <Link
+                      href={`/counseling/${c.id}`}
+                      className="text-sm font-semibold text-blue-700 hover:underline"
+                    >
+                      View profile
+                    </Link>
                   </div>
                 </article>
               ))}
             </div>
           )}
-
-          <p className="mt-8 text-sm text-zinc-500">
-            Booking for intro calls is being set up — it&apos;ll appear on each profile here next.
-          </p>
         </section>
       </main>
 
