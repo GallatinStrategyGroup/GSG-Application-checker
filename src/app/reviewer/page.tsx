@@ -19,16 +19,26 @@ export default async function ReviewerQueuePage() {
 
   const supabase = await createClient();
 
-  // Only real submissions appear in the queue — drafts stay private.
-  const { data } = await supabase
-    .from("submissions")
-    .select(
-      "id, type, status, intended_major, gpa, supplemental_info, updated_at, submitted_at, student_id, assigned_reviewer_id",
-    )
-    .in("status", ["submitted", "in_review", "reviewed"])
-    .order("submitted_at", { ascending: true, nullsFirst: false });
+  // A counselor sees the applications assigned to them.
+  const { data: myReviewer } = await supabase
+    .from("reviewers")
+    .select("id")
+    .eq("profile_id", profile.user.id)
+    .maybeSingle<{ id: string }>();
 
-  const rows = (data ?? []) as QueueRow[];
+  let rows: QueueRow[] = [];
+  if (myReviewer) {
+    // Only real submissions appear in the queue — drafts stay private.
+    const { data } = await supabase
+      .from("submissions")
+      .select(
+        "id, type, status, intended_major, gpa, supplemental_info, updated_at, submitted_at, student_id, assigned_reviewer_id",
+      )
+      .eq("assigned_reviewer_id", myReviewer.id)
+      .in("status", ["submitted", "in_review", "reviewed"])
+      .order("submitted_at", { ascending: true, nullsFirst: false });
+    rows = (data ?? []) as QueueRow[];
+  }
 
   // Student names come from profiles; assignee names come from the reviewers table.
   const studentIds = Array.from(new Set(rows.map((r) => r.student_id)));
@@ -68,9 +78,14 @@ export default async function ReviewerQueuePage() {
             {rows.length} submission{rows.length === 1 ? "" : "s"} in the queue.
           </p>
 
-          {rows.length === 0 ? (
+          {!myReviewer ? (
+            <p className="mt-10 rounded-xl border border-amber-200 bg-amber-50 p-8 text-center text-sm text-amber-900">
+              Your account isn&apos;t linked to a counselor profile yet. Ask an admin to set your
+              reviewers.profile_id to your account, then reload.
+            </p>
+          ) : rows.length === 0 ? (
             <p className="mt-10 rounded-xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
-              Nothing to review yet. Submitted work will appear here.
+              Nothing assigned to you yet. Applications routed to you will appear here.
             </p>
           ) : (
             <ul className="mt-8 space-y-3">

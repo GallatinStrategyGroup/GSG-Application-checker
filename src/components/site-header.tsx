@@ -65,6 +65,12 @@ export async function SiteHeader() {
                 Review queue
               </Link>
               <Link
+                href="/reviewer/clients"
+                className="hidden font-medium text-zinc-600 transition-colors hover:text-zinc-900 sm:inline"
+              >
+                Clients
+              </Link>
+              <Link
                 href="/reviewer/intro-calls"
                 className="hidden font-medium text-zinc-600 transition-colors hover:text-zinc-900 sm:inline"
               >

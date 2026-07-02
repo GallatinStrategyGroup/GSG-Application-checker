@@ -89,6 +89,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   // Uploaded files.
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
+  // Signed GSG families get free peer-review checks (0 = normal paid flow).
+  const [freeChecks, setFreeChecks] = useState<number>(0);
+
   // Load an in-progress draft saved earlier in this browser.
   useEffect(() => {
     let cancelled = false;
@@ -98,13 +101,29 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         setLoading(false);
         return;
       }
+
+      const supabase = createClient();
+
+      // Signed GSG families get free peer-review checks.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user && !user.is_anonymous) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("free_checks_remaining")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!cancelled && prof) setFreeChecks(prof.free_checks_remaining ?? 0);
+      }
+      if (cancelled) return;
+
       const id = typeof window !== "undefined" ? localStorage.getItem(draftKey) : null;
       if (!id) {
         setLoading(false);
         return;
       }
 
-      const supabase = createClient();
       const { data: submission } = await supabase
         .from("submissions")
         .select("id, intended_major, gpa, supplemental_info, status, assigned_reviewer_id")
@@ -300,7 +319,8 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   async function goToPayment() {
     setMessage(null);
-    if (!selectedReviewerId) {
+    // Free (signed) families skip the counselor pick — it's auto-assigned.
+    if (freeChecks === 0 && !selectedReviewerId) {
       setMessage({ kind: "error", text: "Choose a counselor to continue." });
       return;
     }
@@ -312,15 +332,28 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   async function payAndSubmit() {
     setMessage(null);
-    // Make sure the submission exists and is saved before checkout.
-    if (!(await persist("draft"))) return;
+    const id = await persist("draft");
+    if (!id) return;
 
     setSaving(true);
     try {
+      // Signed families: free peer review, round-robin auto-assigned server-side.
+      if (freeChecks > 0) {
+        const supabase = createClient();
+        const { data, error } = await supabase.rpc("submit_free_check", {
+          p_submission_id: id,
+        });
+        if (error) throw error;
+        if (!data?.ok) throw new Error(data?.error ?? "Could not submit your free check.");
+        localStorage.removeItem(draftKey);
+        setSubmitted(true);
+        return;
+      }
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: draftId }),
+        body: JSON.stringify({ submissionId: id }),
       });
       const data = await res.json();
 
@@ -339,7 +372,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
     } catch (err) {
       setMessage({
         kind: "error",
-        text: err instanceof Error ? err.message : "Could not start checkout.",
+        text: err instanceof Error ? err.message : "Could not complete.",
       });
       setSaving(false);
     }
@@ -391,6 +424,8 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   }
 
   // ---- Wizard --------------------------------------------------------------
+
+  const isFree = freeChecks > 0;
 
   return (
     <div>
@@ -635,25 +670,37 @@ export function CheckerForm({ checker }: { checker: Checker }) {
           </>
         )}
 
-        {/* STEP 2 — pick a counselor */}
-        {step === 2 && (
-          <Section
-            title="Choose your counselor"
-            subtitle="Pick who reviews your application. Turn-around times reflect how busy each counselor is right now."
-          >
-            <ReviewerPicker
-              selectedId={selectedReviewerId}
-              onSelect={(id, name) => {
-                setSelectedReviewerId(id);
-                setSelectedReviewerName(name);
-              }}
-            />
-          </Section>
-        )}
+        {/* STEP 2 — pick a counselor (or peer-review panel for signed families) */}
+        {step === 2 &&
+          (isFree ? (
+            <Section title="Your review panel" subtitle="You're a signed GSG family.">
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm leading-relaxed text-blue-900">
+                This Application Check is <strong>free</strong> and will be reviewed by another
+                counselor in the GSG network — automatically matched for you. You have{" "}
+                <strong>{freeChecks}</strong> free check{freeChecks === 1 ? "" : "s"} remaining.
+              </div>
+            </Section>
+          ) : (
+            <Section
+              title="Choose your counselor"
+              subtitle="Pick who reviews your application. Turn-around times reflect how busy each counselor is right now."
+            >
+              <ReviewerPicker
+                selectedId={selectedReviewerId}
+                onSelect={(id, name) => {
+                  setSelectedReviewerId(id);
+                  setSelectedReviewerName(name);
+                }}
+              />
+            </Section>
+          ))}
 
-        {/* STEP 3 — payment */}
+        {/* STEP 3 — payment (or free submit for signed families) */}
         {step === 3 && (
-          <Section title="Payment" subtitle="Review your order and submit for review.">
+          <Section
+            title={isFree ? "Submit" : "Payment"}
+            subtitle={isFree ? "Review and submit — no charge." : "Review your order and submit for review."}
+          >
             <div className="rounded-xl border border-zinc-200 bg-white p-5">
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -663,7 +710,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 <div className="flex justify-between">
                   <dt className="text-zinc-500">Counselor</dt>
                   <dd className="font-medium text-zinc-900">
-                    {selectedReviewerName ?? "Selected counselor"}
+                    {isFree ? "Network peer review (auto-matched)" : (selectedReviewerName ?? "Selected counselor")}
                   </dd>
                 </div>
                 {intendedMajor.trim() && (
@@ -674,13 +721,16 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 )}
                 <div className="flex justify-between border-t border-zinc-100 pt-3 text-base">
                   <dt className="font-semibold text-zinc-900">Total</dt>
-                  <dd className="font-semibold text-zinc-900">{formatUsd(price.amount)}</dd>
+                  <dd className="font-semibold text-zinc-900">
+                    {isFree ? "Free" : formatUsd(price.amount)}
+                  </dd>
                 </div>
               </dl>
             </div>
             <p className="mt-3 text-xs text-zinc-500">
-              You&apos;ll be taken to Stripe&apos;s secure checkout to pay. Your application is
-              submitted for review as soon as payment succeeds.
+              {isFree
+                ? "You won't be charged — this uses one of your free network checks."
+                : "You'll be taken to Stripe's secure checkout to pay. Your application is submitted for review as soon as payment succeeds."}
             </p>
           </Section>
         )}
@@ -741,7 +791,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 Save draft
               </button>
               <button type="button" disabled={saving} onClick={goToPayment} className={primaryBtn}>
-                {saving ? "Saving…" : "Continue to payment →"}
+                {saving ? "Saving…" : isFree ? "Continue →" : "Continue to payment →"}
               </button>
             </>
           )}
@@ -752,7 +802,11 @@ export function CheckerForm({ checker }: { checker: Checker }) {
               onClick={payAndSubmit}
               className={primaryBtn}
             >
-              {saving ? "Working…" : `Pay ${formatUsd(price.amount)} & submit`}
+              {saving
+                ? "Working…"
+                : isFree
+                  ? "Submit for free"
+                  : `Pay ${formatUsd(price.amount)} & submit`}
             </button>
           )}
         </div>
