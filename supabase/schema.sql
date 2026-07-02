@@ -43,9 +43,22 @@ returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
+declare
+  v_reviewer_id uuid;
 begin
   insert into public.profiles (id, email, full_name)
   values (new.id, new.email, new.raw_user_meta_data ->> 'full_name');
+
+  -- Auto-promote + link counselors whose email is on the roster (reviewers.email).
+  if new.email is not null then
+    select id into v_reviewer_id
+      from public.reviewers where lower(email) = lower(new.email) limit 1;
+    if v_reviewer_id is not null then
+      update public.profiles set role = 'reviewer' where id = new.id;
+      update public.reviewers set profile_id = new.id where id = v_reviewer_id;
+    end if;
+  end if;
+
   return new;
 end;
 $$;
@@ -66,6 +79,7 @@ create trigger on_auth_user_created
 create table public.reviewers (
   id             uuid primary key default gen_random_uuid(),
   profile_id     uuid references public.profiles (id) on delete set null,
+  email          text,        -- counselor's login email → auto-promote on signup
   name           text not null,
   headline       text,        -- short specialty line, e.g. "STEM & research"
   bio            text,        -- a sentence or two of background
