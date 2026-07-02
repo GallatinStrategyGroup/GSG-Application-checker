@@ -18,6 +18,15 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex items-center gap-6 text-sm">
+          {profile?.isAdmin && (
+            <Link
+              href="/admin"
+              className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+            >
+              Admin
+            </Link>
+          )}
+
           {!profile && (
             <>
               <Link

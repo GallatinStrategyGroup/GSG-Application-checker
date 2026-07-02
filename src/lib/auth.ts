@@ -26,6 +26,7 @@ export type Role = "student" | "reviewer";
 export interface CurrentProfile {
   user: User;
   role: Role;
+  isAdmin: boolean;
 }
 
 // The signed-in user together with their role, or null if not signed in.
@@ -36,9 +37,9 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_admin")
     .eq("id", user!.id)
-    .maybeSingle<{ role: Role }>();
+    .maybeSingle<{ role: Role; is_admin: boolean }>();
 
-  return { user: user!, role: data?.role ?? "student" };
+  return { user: user!, role: data?.role ?? "student", isAdmin: data?.is_admin ?? false };
 }
