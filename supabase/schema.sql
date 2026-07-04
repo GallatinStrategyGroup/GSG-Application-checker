@@ -230,7 +230,20 @@ alter table public.feedback       enable row level security;
 create policy "profiles_select" on public.profiles
   for select using (id = auth.uid() or public.is_reviewer());
 create policy "profiles_update" on public.profiles
-  for update using (id = auth.uid());
+  for update using (id = auth.uid()) with check (id = auth.uid());
+
+-- IMPORTANT (privilege-escalation guard): the policy above lets a user edit
+-- THEIR OWN row, but sensitive columns (role, is_admin, free_checks_remaining,
+-- signed_by_reviewer_id) also live on that row. RLS can't restrict individual
+-- columns, so we use column privileges: ordinary users may change ONLY
+-- email + full_name. Without this, a student could set their own
+-- role='reviewer' / is_admin=true and read every other family's data, or grant
+-- themselves unlimited free reviews. Those columns are set only by the
+-- security-definer trigger/RPCs (or by staff in Supabase), never by the client.
+-- New sensitive columns added by later migrations inherit this lockdown
+-- automatically, because they are never granted to authenticated.
+revoke update on public.profiles from anon, authenticated;
+grant  update (email, full_name) on public.profiles to authenticated;
 
 -- REVIEWERS: the cards are public so any visitor can browse and pick one.
 -- Only reviewers (staff) can edit reviewer rows from the app; you can also
@@ -247,7 +260,8 @@ create policy "submissions_select" on public.submissions
 create policy "submissions_insert" on public.submissions
   for insert with check (student_id = auth.uid());
 create policy "submissions_update" on public.submissions
-  for update using (student_id = auth.uid() or public.is_reviewer());
+  for update using (student_id = auth.uid() or public.is_reviewer())
+  with check (student_id = auth.uid() or public.is_reviewer());
 create policy "submissions_delete" on public.submissions
   for delete using (student_id = auth.uid());
 

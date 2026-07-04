@@ -88,6 +88,10 @@ export function ReviewerActions({
   }
 
   async function saveFeedback() {
+    if (!feedback.trim()) {
+      setMessage({ kind: "error", text: "Write some feedback before marking this reviewed." });
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
