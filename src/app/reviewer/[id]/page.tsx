@@ -13,6 +13,7 @@ import {
 } from "@/components/submission-detail";
 import { ReviewerActions } from "@/components/reviewer-actions";
 import { type SubmissionRow } from "@/lib/submissions";
+import { parseActivityScores, parseSchoolChances } from "@/lib/scoring";
 
 interface ReviewSubmission extends SubmissionRow {
   student_id: string;
@@ -49,15 +50,22 @@ export default async function ReviewerSubmissionPage({
       supabase.from("target_schools").select("name, tier").eq("submission_id", id),
       supabase
         .from("activities")
-        .select("role, organization, years, hours, description")
+        .select("role, organization, years, hours, description, position")
         .eq("submission_id", id)
         .order("position"),
       supabase.from("essays").select("title, body").eq("submission_id", id).order("position"),
       supabase
         .from("feedback")
-        .select("id, body")
+        .select("id, body, strengths, concerns, activity_scores, school_chances")
         .eq("submission_id", id)
-        .maybeSingle<{ id: string; body: string | null }>(),
+        .maybeSingle<{
+          id: string;
+          body: string | null;
+          strengths: string | null;
+          concerns: string | null;
+          activity_scores: unknown;
+          school_chances: unknown;
+        }>(),
       supabase
         .from("profiles")
         .select("full_name, email")
@@ -94,6 +102,16 @@ export default async function ReviewerSubmissionPage({
   }));
   const currentReviewerId = myReviewer?.id ?? null;
 
+  // Rows the reviewer scores: one per activity (by position) and per school.
+  const scorableActivities = (activities ?? []).map((a, i) => ({
+    position: typeof a.position === "number" ? a.position : i,
+    label: [a.role, a.organization].filter(Boolean).join(" · ") || `Activity ${i + 1}`,
+  }));
+  const scorableSchools = (schools ?? []).map((s) => ({
+    name: s.name as string,
+    tier: s.tier as string,
+  }));
+
   return (
     <>
       <SiteHeader />
@@ -119,9 +137,15 @@ export default async function ReviewerSubmissionPage({
               currentUserId={profile.user.id}
               currentReviewerId={currentReviewerId}
               reviewers={reviewers}
+              activities={scorableActivities}
+              schools={scorableSchools}
               initialStatus={submission.status}
               initialAssignee={submission.assigned_reviewer_id}
               initialFeedback={feedback?.body ?? ""}
+              initialStrengths={feedback?.strengths ?? ""}
+              initialConcerns={feedback?.concerns ?? ""}
+              initialActivityScores={parseActivityScores(feedback?.activity_scores)}
+              initialSchoolChances={parseSchoolChances(feedback?.school_chances)}
               initialFeedbackId={feedback?.id ?? null}
             />
           </div>

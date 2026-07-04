@@ -14,6 +14,8 @@ import {
   type SchoolView,
 } from "@/components/submission-detail";
 import { type SubmissionRow } from "@/lib/submissions";
+import { FeedbackView } from "@/components/feedback-view";
+import { parseActivityScores, parseSchoolChances } from "@/lib/scoring";
 
 export default async function SubmissionDetailPage({
   params,
@@ -58,15 +60,22 @@ export default async function SubmissionDetailPage({
       supabase.from("target_schools").select("name, tier").eq("submission_id", id),
       supabase
         .from("activities")
-        .select("role, organization, years, hours, description")
+        .select("role, organization, years, hours, description, position")
         .eq("submission_id", id)
         .order("position"),
       supabase.from("essays").select("title, body").eq("submission_id", id).order("position"),
       supabase
         .from("feedback")
-        .select("body, updated_at")
+        .select("body, strengths, concerns, activity_scores, school_chances, updated_at")
         .eq("submission_id", id)
-        .maybeSingle<{ body: string | null; updated_at: string }>(),
+        .maybeSingle<{
+          body: string | null;
+          strengths: string | null;
+          concerns: string | null;
+          activity_scores: unknown;
+          school_chances: unknown;
+          updated_at: string;
+        }>(),
       supabase
         .from("attachments")
         .select("title, file_name, file_path")
@@ -84,6 +93,17 @@ export default async function SubmissionDetailPage({
   );
 
   const checker = getChecker(submission.type);
+
+  const activityLabels = (activities ?? []).map((a, i) => ({
+    position: typeof a.position === "number" ? a.position : i,
+    label: [a.role, a.organization].filter(Boolean).join(" · ") || `Activity ${i + 1}`,
+  }));
+  const activityScores = parseActivityScores(feedback?.activity_scores);
+  const schoolChances = parseSchoolChances(feedback?.school_chances);
+  const hasFeedback =
+    !!(feedback?.body?.trim() || feedback?.strengths?.trim() || feedback?.concerns?.trim()) ||
+    activityScores.length > 0 ||
+    schoolChances.length > 0;
 
   return (
     <>
@@ -112,10 +132,17 @@ export default async function SubmissionDetailPage({
           {/* Feedback first — it's what they came back for. */}
           <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
             <h2 className="font-serif text-xl font-medium text-zinc-900">Reviewer feedback</h2>
-            {feedback?.body ? (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
-                {feedback.body}
-              </p>
+            {hasFeedback ? (
+              <div className="mt-4">
+                <FeedbackView
+                  body={feedback?.body ?? null}
+                  strengths={feedback?.strengths ?? null}
+                  concerns={feedback?.concerns ?? null}
+                  activityScores={activityScores}
+                  schoolChances={schoolChances}
+                  activityLabels={activityLabels}
+                />
+              </div>
             ) : (
               <p className="mt-3 text-sm text-zinc-500">
                 {submission.status === "draft"
