@@ -34,6 +34,15 @@ export default function Home() {
               >
                 Real counselors, never AI · Feedback in about two days
               </p>
+              <p className="mt-4 animate-fade-up text-sm" style={{ animationDelay: "180ms" }}>
+                <Link
+                  href="/ec-estimate"
+                  className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-800"
+                >
+                  Not sure where you stand? Try the free EC tier estimate
+                  <span aria-hidden>→</span>
+                </Link>
+              </p>
             </div>
 
             {/* Two big cards */}

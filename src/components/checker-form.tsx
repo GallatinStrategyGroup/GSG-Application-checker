@@ -14,6 +14,14 @@ import type { Checker } from "@/lib/checkers";
 type Tier = "reach" | "match" | "safety";
 type Step = 1 | 2 | 3;
 
+// Partial checker: which parts of the application to work on.
+type PartialScope = "all" | "essays" | "ec";
+const SCOPE_OPTIONS: { value: PartialScope; label: string; hint: string }[] = [
+  { value: "all", label: "Everything", hint: "Activities and essays" },
+  { value: "ec", label: "Activities only", hint: "Just my extracurriculars" },
+  { value: "essays", label: "Essays only", hint: "Just my essays" },
+];
+
 interface SchoolRow {
   name: string;
   tier: Tier;
@@ -81,6 +89,10 @@ export function CheckerForm({ checker }: { checker: Checker }) {
   const [activities, setActivities] = useState<ActivityRow[]>([emptyActivity()]);
   const [essays, setEssays] = useState<EssayRow[]>([emptyEssay()]);
   const [supplementalInfo, setSupplementalInfo] = useState("");
+
+  // Partial checker only: what does the family want to work on? This lets them
+  // review just their activities (EC) even before any essays are written.
+  const [partialScope, setPartialScope] = useState<PartialScope>("all");
 
   // Which counselor the student picked.
   const [selectedReviewerId, setSelectedReviewerId] = useState<string | null>(null);
@@ -427,6 +439,12 @@ export function CheckerForm({ checker }: { checker: Checker }) {
 
   const isFree = freeChecks > 0;
 
+  // On the partial checker, the scope picker can hide the activities or essays
+  // section. Every other checker shows its normal sections.
+  const isPartial = checker.type === "partial";
+  const showActivities = !(isPartial && partialScope === "essays");
+  const showEssays = checker.hasEssays && !(isPartial && partialScope === "ec");
+
   return (
     <div>
       {/* Stepper */}
@@ -465,6 +483,36 @@ export function CheckerForm({ checker }: { checker: Checker }) {
         {/* STEP 1 — your work */}
         {step === 1 && (
           <>
+            {isPartial && (
+              <Section
+                title="What would you like reviewed?"
+                subtitle="Not done with essays yet? You can get your activities reviewed on their own."
+              >
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {SCOPE_OPTIONS.map((o) => {
+                    const active = partialScope === o.value;
+                    return (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => setPartialScope(o.value)}
+                        className={`rounded-xl border p-4 text-left transition-colors ${
+                          active
+                            ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600"
+                            : "border-zinc-200 bg-white hover:border-zinc-300"
+                        }`}
+                      >
+                        <span className="block text-sm font-semibold text-zinc-900">
+                          {o.label}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-zinc-500">{o.hint}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+
             <Section
               title="Upload files (optional)"
               subtitle="Drag in your Common App, essays, or any PDFs. Give each one a title so your counselor knows what it is."
@@ -542,6 +590,7 @@ export function CheckerForm({ checker }: { checker: Checker }) {
               </div>
             </Section>
 
+            {showActivities && (
             <Section
               title="Activities"
               subtitle={
@@ -619,8 +668,9 @@ export function CheckerForm({ checker }: { checker: Checker }) {
                 onClick={() => setActivities([...activities, emptyActivity()])}
               />
             </Section>
+            )}
 
-            {checker.hasEssays && (
+            {showEssays && (
               <Section title="Essays" subtitle="Add each essay with a short title and the full text.">
                 <div className="space-y-4">
                   {essays.map((e, i) => (

@@ -89,6 +89,17 @@ It adds an `intro_call_requests` table (anyone can submit; only reviewers can
 read). Reviewers see the requests at `/reviewer/intro-calls` ("Intro calls" in
 the header).
 
+## Structured feedback (tier scores + school chancing)
+Reviewers give a structured review instead of one plain text box: an overall
+summary, strengths, concerns, a **1–4 tier score for each activity** (the
+four-tier framework admissions readers use), and a **chance read for each target
+school**. To enable it, run **`supabase/010-structured-feedback.sql`** once in
+the Supabase SQL Editor (same paste-and-Run flow). It just adds columns to the
+existing `feedback` table — old feedback keeps working. No new access rules are
+needed. There is also a free, no-signup **EC tier estimate** tool at `/ec-estimate`
+that runs a transparent rule-based estimate (no AI, nothing saved) to draw
+visitors toward a real review — it needs no database changes.
+
 ## Payments (Stripe)
 The EC Check ($63.99) and Application Check ($189.99) are paid via Stripe on the
 last step of the wizard. To turn payments on:

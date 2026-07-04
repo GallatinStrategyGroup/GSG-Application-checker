@@ -16,7 +16,7 @@ const OPTIONS = [
     href: "/start/partial",
     title: "Still working on it",
     description:
-      "You have some of it done. Share whatever is ready, save your progress, and come back to add more.",
+      "You have some of it done. Get your activities only, essays only, or everything reviewed — save your progress and come back any time.",
   },
 ];
 
