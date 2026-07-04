@@ -1,0 +1,6 @@
+# Machine-specific absolute paths — regenerated per machine, never commit.
+.graphify_python
+.graphify_root
+
+# Regenerable extraction cache (speeds up `--update`; not needed in the repo).
+cache/

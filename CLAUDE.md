@@ -1,5 +1,13 @@
 # GSG Application Checker
 
+## Knowledge graph (read this first)
+A prebuilt knowledge graph of this whole repo lives in `graphify-out/`. To
+understand how things connect without rereading every file, start with
+`graphify-out/GRAPH_REPORT.md` (plain-language map: key hub files, communities,
+how modules relate) or query the machine-readable `graphify-out/graph.json`. It
+reflects the code at build time and can go stale — run `/graphify . --update` to
+refresh it after significant changes.
+
 ## What this is
 A college admissions review tool for Gallatin Strategy Group (GSG), a company
 that matches families with independent college counselors. Students submit
