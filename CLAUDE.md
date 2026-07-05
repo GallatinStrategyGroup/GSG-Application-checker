@@ -4,9 +4,20 @@
 A prebuilt knowledge graph of this whole repo lives in `graphify-out/`. To
 understand how things connect without rereading every file, start with
 `graphify-out/GRAPH_REPORT.md` (plain-language map: key hub files, communities,
-how modules relate) or query the machine-readable `graphify-out/graph.json`. It
-reflects the code at build time and can go stale — run `/graphify . --update` to
-refresh it after significant changes.
+how modules relate) or query the machine-readable `graphify-out/graph.json`.
+
+**Keep it fresh (do this so future sessions stay fast):** the graph is a
+snapshot and drifts as the code changes. After you finish a set of meaningful
+changes (new files, renamed/removed modules, changed data flow), before you
+wrap up:
+1. Run `/graphify . --update` — re-extracts only what changed and rewrites
+   `graph.json` + `GRAPH_REPORT.md`.
+2. Commit the refreshed `graphify-out/` along with your code.
+
+On the repo owner's local machine a git `post-commit` hook also auto-rebuilds
+the graph after each commit (code-only, no LLM). That hook is local and does
+NOT run in Cowork or a fresh clone, so in those environments the manual
+`/graphify . --update` step above is what keeps the graph current.
 
 ## What this is
 A college admissions review tool for Gallatin Strategy Group (GSG), a company
